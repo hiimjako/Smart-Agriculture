@@ -33,10 +33,10 @@ public class MqttVehicleConsumer {
 
             System.out.println("Connected!");
 
-            String topic_subscribe = String.format("%s/%s/+/%s",
+            String topic_subscribe = String.format("%s/%s/+/%s/+",
                     MqttConfigurationParameters.MQTT_BASIC_TOPIC,
-                    MqttConfigurationParameters.VEHICLE_TOPIC,
-                    MqttConfigurationParameters.VEHICLE_TELEMETRY_TOPIC);
+                    MqttConfigurationParameters.ZONE_TOPIC,
+                    MqttConfigurationParameters.LIGHT_TOPIC);
 
             //Subscribe to the target topic #. In that case the consumer will receive (if
             //passing through the broker
@@ -49,10 +49,11 @@ public class MqttVehicleConsumer {
 
             });
 
-            String topic_subscribe2 = String.format("%s/%s/+/%s",
+            String topic_subscribe2 = String.format("%s/%s/+/%s/+/%s",
                     MqttConfigurationParameters.MQTT_BASIC_TOPIC,
-                    MqttConfigurationParameters.VEHICLE_TOPIC,
-                    MqttConfigurationParameters.VEHICLE_INFO_TOPIC);
+                    MqttConfigurationParameters.ZONE_TOPIC,
+                    MqttConfigurationParameters.LIGHT_TOPIC,
+                    MqttConfigurationParameters.ACTUATOR_STATUS_TOPIC);
 
             //Subscribe to the target topic #. In that case the consumer will receive (if
             //passing through the broker
@@ -66,8 +67,8 @@ public class MqttVehicleConsumer {
             });
 
 
-            mqttClient.disconnect();
-            mqttClient.close();
+//            mqttClient.disconnect();
+//            mqttClient.close();
             System.out.println(" Disconnected !");
 
         } catch (Exception e) {

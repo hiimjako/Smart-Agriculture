@@ -3,7 +3,6 @@ package it.unimore.iot.smartagricolture.mqtt.process;
 import com.google.gson.Gson;
 import it.unimore.iot.smartagricolture.mqtt.conf.MqttConfigurationParameters;
 import it.unimore.iot.smartagricolture.mqtt.model.LightController;
-import it.unimore.mqtt.model.ElectricVehicleTelemetryData;
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
@@ -32,13 +31,14 @@ public class MqttVehicleProcessEmulator {
 
             System.out.println("Connected!");
 
+            Integer zoneId = 1;
             LightController lightController = new LightController(true);
 
-            publishDeviceInfo(mqttClient, lightController);
+            publishDeviceInfo(mqttClient, zoneId, lightController);
 
             for (int i = 0; i < MESSAGE_COUNT; i++) {
-                electricVehicleTelemetryData.updateMeasurements();
-                publishTelemetryData(mqttClient, vehicleDescriptor.getUuid(), electricVehicleTelemetryData);
+                lightController.setActive(!lightController.isActive());
+                publishTelemetryData(mqttClient, zoneId, lightController.getId(), lightController);
                 Thread.sleep(3000);
             }
 
@@ -51,17 +51,19 @@ public class MqttVehicleProcessEmulator {
         }
     }
 
-    public static void publishDeviceInfo(IMqttClient mqttClient, LightController vehicleDescriptor) {
+    public static void publishDeviceInfo(IMqttClient mqttClient, Integer zoneId, LightController lightDescriptor) {
         try {
             Gson gson = new Gson();
             if (mqttClient.isConnected()) {
-                String topic = String.format("%s/%s/%s/%s",
+                String topic = String.format("%s/%s/%d/%s/%d/%s",
                         MqttConfigurationParameters.MQTT_BASIC_TOPIC,
-                        MqttConfigurationParameters.ZONE_ID_TOPIC.formatted("1"),
-                        MqttConfigurationParameters.LIGHT_ID_TOPIC.formatted("1"),
+                        MqttConfigurationParameters.ZONE_TOPIC,
+                        zoneId,
+                        MqttConfigurationParameters.LIGHT_TOPIC,
+                        lightDescriptor.getId(),
                         MqttConfigurationParameters.ACTUATOR_STATUS_TOPIC);
 
-                String payloadString = gson.toJson(vehicleDescriptor);
+                String payloadString = gson.toJson(lightDescriptor);
                 MqttMessage msg = new MqttMessage(payloadString.getBytes());
                 msg.setQos(0);
                 msg.setRetained(true);
@@ -77,19 +79,21 @@ public class MqttVehicleProcessEmulator {
 
     }
 
-    public static void publishTelemetryData(IMqttClient mqttClient, String vehicleId, ElectricVehicleTelemetryData telemetryData) {
+    public static void publishTelemetryData(IMqttClient mqttClient, Integer zoneId, Integer vehicleId, LightController telemetryData) {
 
         try {
 
             Gson gson = new Gson();
 
-            String topic = String.format("%s/%s/%s/%s",
+            String topic = String.format("%s/%s/%d/%s/%d/%s",
                     MqttConfigurationParameters.MQTT_BASIC_TOPIC,
-                    MqttConfigurationParameters.VEHICLE_TOPIC,
+                    MqttConfigurationParameters.ZONE_TOPIC,
+                    zoneId,
+                    MqttConfigurationParameters.LIGHT_TOPIC,
                     vehicleId,
-                    MqttConfigurationParameters.VEHICLE_TELEMETRY_TOPIC);
+                    MqttConfigurationParameters.ACTUATOR_STATUS_TOPIC);
 
-            String payloadString = gson.toJson(telemetryData);
+            String payloadString = gson.toJson(telemetryData.isActive());
 
             System.out.println(" Publishing to Topic : " + topic + " Data : " + payloadString);
 
