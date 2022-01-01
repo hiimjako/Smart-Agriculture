@@ -1,0 +1,13 @@
+version: "3.8"
+
+services:
+  mosquitto:
+    container_name: mosquitto
+    image: eclipse-mosquitto:2.0.14
+    volumes:
+    - "./mosquitto/config:/mosquitto/config"
+    - "./mosquitto/log:/mosquitto/log"
+    - "./mosquitto/data/:/mosquitto/data"
+    restart: always
+    ports:
+    - "1883:1883"
