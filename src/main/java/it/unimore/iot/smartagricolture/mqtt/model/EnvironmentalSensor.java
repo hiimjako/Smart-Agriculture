@@ -1,81 +1,60 @@
 package it.unimore.iot.smartagricolture.mqtt.model;
 
+import it.unimore.iot.smartagricolture.mqtt.model.sensor.*;
+
 public class EnvironmentalSensor extends BaseIOTObject {
-    private double temperature;
-    private double brightness;
-    private double humidity;
-    private double rainLevel;
-    private int batteryPercentage;
+    private Temperature temperatureSensor = new Temperature();
+    private Brightness brightnessSensor = new Brightness();
+    private Humidity humiditySensor = new Humidity();
+    private Rain rainSensor = new Rain();
+    private Battery battery = new Battery();
     private GeoLocation location = new GeoLocation();
 
     public EnvironmentalSensor() {
     }
 
     public EnvironmentalSensor(double temperature, double brightness, double humidity, double rainLevel, int batteryPercentage, GeoLocation location) {
-        this.temperature = temperature;
-        this.brightness = brightness;
-        this.humidity = humidity;
-        this.rainLevel = rainLevel;
-        this.batteryPercentage = batteryPercentage;
+        this.temperatureSensor = new Temperature(temperature);
+        this.brightnessSensor = new Brightness(brightness);
+        this.humiditySensor = new Humidity(humidity);
+        this.rainSensor = new Rain(rainLevel);
+        this.battery = new Battery(batteryPercentage);
         this.location = location;
     }
 
-    public double getTemperature() {
-        return temperature;
+    public Temperature getTemperatureSensor() {
+        return this.temperatureSensor;
     }
 
-    public void setTemperature(double temperature) {
-        this.temperature = temperature;
+    public Brightness getBrightnessSensor() {
+        return this.brightnessSensor;
     }
 
-    public double getBrightness() {
-        return brightness;
+    public Humidity getHumiditySensor() {
+        return this.humiditySensor;
     }
 
-    public void setBrightness(double brightness) {
-        this.brightness = brightness;
+    public Rain getRainSensor() {
+        return this.rainSensor;
     }
 
-    public double getHumidity() {
-        return humidity;
-    }
-
-    public void setHumidity(double humidity) {
-        this.humidity = humidity;
-    }
-
-    public double getRainLevel() {
-        return rainLevel;
-    }
-
-    public void setRainLevel(double rainLevel) {
-        this.rainLevel = rainLevel;
-    }
-
-    public int getBatteryPercentage() {
-        return batteryPercentage;
-    }
-
-    public void setBatteryPercentage(int batteryPercentage) {
-        this.batteryPercentage = batteryPercentage;
+    public Battery getBattery() {
+        return this.battery;
     }
 
     public GeoLocation getLocation() {
-        return location;
+        return this.location;
     }
 
-    public void setLocation(GeoLocation location) {
-        this.location = location;
-    }
 
     @Override
     public String toString() {
         return "EnvironmentalSensor{" +
-                "temperature=" + temperature +
-                ", brightness=" + brightness +
-                ", humidity=" + humidity +
-                ", rainLevel=" + rainLevel +
-                ", batteryPercentage=" + batteryPercentage +
+                "temperatureSensor=" + temperatureSensor +
+                ", brightnessSensor=" + brightnessSensor +
+                ", humiditySensor=" + humiditySensor +
+                ", rainSensor=" + rainSensor +
+                ", battery=" + battery +
                 ", location=" + location +
                 '}';
     }

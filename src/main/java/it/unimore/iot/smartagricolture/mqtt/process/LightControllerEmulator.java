@@ -6,18 +6,18 @@ import it.unimore.iot.smartagricolture.mqtt.model.LightController;
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
-public class MqttVehicleProcessEmulator {
+public class LightControllerEmulator {
     private static final int MESSAGE_COUNT = 1000;
 
     public static void main(String[] args) {
         try {
 
-            String vehicleId = String.format("vehicle-%s", MqttConfigurationParameters.MQTT_USERNAME);
+            LightController lightController = new LightController();
 
             MqttClientPersistence persistence = new MemoryPersistence();
             IMqttClient mqttClient = new MqttClient(
-                    String.format("tcp://%s:%d", MqttConfigurationParameters.BROKER_ADDRESS, MqttConfigurationParameters.BROKER_PORT),
-                    vehicleId,
+                    MqttConfigurationParameters.BROKER_URL,
+                    lightController.getId(),
                     persistence);
 
             MqttConnectOptions options = new MqttConnectOptions();
@@ -32,7 +32,6 @@ public class MqttVehicleProcessEmulator {
             System.out.println("Connected!");
 
             Integer zoneId = 1;
-            LightController lightController = new LightController(true);
 
             publishDeviceInfo(mqttClient, zoneId, lightController);
 

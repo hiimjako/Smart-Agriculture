@@ -5,7 +5,7 @@ import it.unimore.iot.smartagricolture.mqtt.exception.InvalidValue;
 import java.util.ArrayList;
 import java.util.Arrays;
 
-public class IrrigationController extends SmartObjectWithBattery implements IBooleanActuator {
+public class IrrigationController implements IBooleanActuator {
     private boolean isActive = false;
     private String irrigationLevel = "medium";
     public static final ArrayList<String> allowedIrrigationLevels = new ArrayList<>(Arrays.asList("low", "medium", "high"));
