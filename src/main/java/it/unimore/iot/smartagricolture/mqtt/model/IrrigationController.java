@@ -5,6 +5,12 @@ import it.unimore.iot.smartagricolture.mqtt.exception.InvalidValue;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+/**
+ * @author Alberto Moretti, 272804@studenti.unimore.it
+ * @version 1.0.0
+ * @project smart-agriculture
+ * @created 02/01/2022 - 16:18
+ */
 public class IrrigationController implements IBooleanActuator {
     private boolean isActive = false;
     private String irrigationLevel = "medium";

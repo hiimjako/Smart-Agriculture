@@ -19,7 +19,8 @@ public class MqttConfigurationParameters {
     public static String LIGHT_TOPIC = "light";
     public static String ENV_SENSOR_TOPIC = "environmental";
 
-    public static String OBJECT_BATTERY_TOPIC = "battery";
+    public static String TELEMETRY_TOPIC = "telemetry";
+    public static String BATTERY_PERCENTAGE_TOPIC = "battery";
     public static String ACTUATOR_STATUS_TOPIC = "active";
 
 }

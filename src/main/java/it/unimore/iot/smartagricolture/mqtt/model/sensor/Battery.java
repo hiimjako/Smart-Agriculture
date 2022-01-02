@@ -1,8 +1,16 @@
 package it.unimore.iot.smartagricolture.mqtt.model.sensor;
 
+/**
+ * @author Alberto Moretti, 272804@studenti.unimore.it
+ * @version 1.0.0
+ * @project smart-agriculture
+ * @created 02/01/2022 - 16:18
+ */
 public class Battery {
     private int batteryPercentage;
     public static final int BATTERY_PERCENTAGE_THRESHOLD = 20;
+    public static final int BATTERY_PERCENTAGE_MIN = 0;
+    public static final int BATTERY_PERCENTAGE_MAX = 100;
 
 
     public Battery() {
@@ -27,13 +35,15 @@ public class Battery {
 
     public void setBatteryPercentage(int batteryPercentage) {
         //Only for simulation purposes
-        if (batteryPercentage >= 0 && batteryPercentage <= 100)
-            this.batteryPercentage = batteryPercentage;
+        if (batteryPercentage <= BATTERY_PERCENTAGE_MIN) {
+            this.batteryPercentage = BATTERY_PERCENTAGE_MIN;
+        } else if (batteryPercentage >= BATTERY_PERCENTAGE_MAX)
+            this.batteryPercentage = BATTERY_PERCENTAGE_MAX;
         else
-            System.err.println("Cannot set battery level < 0 or > 0");
+            this.batteryPercentage = batteryPercentage;
     }
 
-    public void decreaseBatteryLevel(int batteryPercentageToDecrease) {
+    public void decreaseBatteryLevelBy(int batteryPercentageToDecrease) {
         this.setBatteryPercentage(this.batteryPercentage - batteryPercentageToDecrease);
     }
 
