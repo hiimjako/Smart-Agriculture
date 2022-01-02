@@ -8,6 +8,7 @@ package it.unimore.iot.smartagricolture.mqtt.model.sensor;
  */
 public class Temperature {
     private double value;
+    public static final int TEMPERATURE_THRESHOLD = 20;
 
     public Temperature() {
     }
@@ -22,6 +23,10 @@ public class Temperature {
 
     public void setValue(double value) {
         this.value = value;
+    }
+
+    public boolean isUnderTemperature() {
+        return this.value >= TEMPERATURE_THRESHOLD;
     }
 
     @Override

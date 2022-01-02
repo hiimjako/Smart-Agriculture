@@ -8,6 +8,7 @@ package it.unimore.iot.smartagricolture.mqtt.model.sensor;
  */
 public class Rain {
     private double value;
+    public static final int IS_RAIN_THRESHOLD = 20;
 
     public Rain() {
     }
@@ -22,6 +23,10 @@ public class Rain {
 
     public void setValue(double value) {
         this.value = value;
+    }
+
+    public boolean isRaining() {
+        return this.value >= IS_RAIN_THRESHOLD;
     }
 
     @Override

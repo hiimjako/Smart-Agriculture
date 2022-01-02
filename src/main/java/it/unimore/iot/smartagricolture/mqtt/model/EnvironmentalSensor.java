@@ -12,7 +12,7 @@ public class EnvironmentalSensor extends BaseIOTObject {
     private Temperature temperatureSensor = new Temperature();
     private Brightness brightnessSensor = new Brightness();
     private Humidity humiditySensor = new Humidity();
-    private Rain rainSensor = new Rain();
+    private Rain rainSensor = new Rain(Rain.IS_RAIN_THRESHOLD + 10);
     private Battery battery = new Battery();
     private GeoLocation location = new GeoLocation();
 

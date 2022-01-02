@@ -11,13 +11,17 @@ import java.util.Arrays;
  * @project smart-agriculture
  * @created 02/01/2022 - 16:18
  */
-public class IrrigationController implements IBooleanActuator {
+public class IrrigationController extends BaseIOTObject implements IBooleanActuator {
     private boolean isActive = false;
     private String irrigationLevel = "medium";
     public static final ArrayList<String> allowedIrrigationLevels = new ArrayList<>(Arrays.asList("low", "medium", "high"));
     private boolean rotate = false;
 
     public IrrigationController() {
+    }
+
+    public IrrigationController(String zoneId) {
+        super(zoneId);
     }
 
     public IrrigationController(boolean isActive, String irrigationLevel, boolean rotate) throws InvalidValue {

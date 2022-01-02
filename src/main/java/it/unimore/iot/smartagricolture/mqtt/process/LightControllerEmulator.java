@@ -36,7 +36,7 @@ public class LightControllerEmulator {
             publishDeviceInfo(mqttClient, zoneId, lightController);
 
             for (int i = 0; i < MESSAGE_COUNT; i++) {
-                lightController.setActive(!lightController.isActive());
+                lightController.toggleActivate();
                 publishTelemetryData(mqttClient, zoneId, lightController.getId(), lightController);
                 Thread.sleep(3000);
             }

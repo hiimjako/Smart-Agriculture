@@ -17,6 +17,7 @@ public class MqttConfigurationParameters {
     public static String MQTT_BASIC_TOPIC = "/iot/agriculture";
     public static String ZONE_TOPIC = "zone";
     public static String LIGHT_TOPIC = "light";
+    public static String IRRIGATION_TOPIC = "irrigation";
     public static String ENV_SENSOR_TOPIC = "environmental";
 
     public static String TELEMETRY_TOPIC = "telemetry";

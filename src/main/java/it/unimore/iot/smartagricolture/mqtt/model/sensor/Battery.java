@@ -15,7 +15,7 @@ public class Battery {
 
     public Battery() {
         //Only for simulation purposes
-        this.batteryPercentage = 100;
+        this.batteryPercentage = BATTERY_PERCENTAGE_MAX;
 //        new Timer().scheduleAtFixedRate(new TimerTask() {
 //            @Override
 //            public void run() {

@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 
 public class EnvironmentalMonitoringEmulator {
     private final static Logger logger = LoggerFactory.getLogger(EnvironmentalMonitoringEmulator.class);
-    private final static int BATTERY_DRAIN = 5;
+    private final static int BATTERY_DRAIN = 15;
 
     public static void main(String[] args) {
         try {
@@ -35,8 +35,7 @@ public class EnvironmentalMonitoringEmulator {
 
             logger.info("Connected!");
 
-
-            publishDeviceInfo(mqttClient, zoneId, environmentalSensor);
+            publishDeviceInfo(mqttClient, environmentalSensor);
 
             while (environmentalSensor.getBattery().getBatteryPercentage() > 0) {
                 logger.info("Current battery level: {}", environmentalSensor.getBattery().getBatteryPercentage());
@@ -45,104 +44,113 @@ public class EnvironmentalMonitoringEmulator {
                 }
                 publishTelemetryData(mqttClient, environmentalSensor);
                 // simulazione scaricamento della batteria
-                environmentalSensor.getBattery().decreaseBatteryLevel(BATTERY_DRAIN);
+                environmentalSensor.getBattery().decreaseBatteryLevelBy(BATTERY_DRAIN);
                 Thread.sleep(2000);
             }
 
             mqttClient.disconnect();
             mqttClient.close();
-            logger.info(" Disconnected !");
+            logger.info("Disconnected!");
 
         } catch (Exception e) {
+            logger.error("Error while publishing!");
             e.printStackTrace();
         }
     }
 
-    public static void publishDeviceBattery(IMqttClient mqttClient, EnvironmentalSensor environmentalSensor) {
-        try {
-            Gson gson = new Gson();
-            if (mqttClient.isConnected()) {
-                String topic = String.format("%s/%s/%s/%s/%s/%s",
-                        MqttConfigurationParameters.MQTT_BASIC_TOPIC,
-                        MqttConfigurationParameters.ZONE_TOPIC,
-                        environmentalSensor.getZoneId(),
-                        MqttConfigurationParameters.ENV_SENSOR_TOPIC,
-                        environmentalSensor.getId(),
-                        MqttConfigurationParameters.OBJECT_BATTERY_TOPIC);
+    /**
+     * Send the current battery percentage to the specified MQTT topic
+     *
+     * @param mqttClient          The mqtt client
+     * @param environmentalSensor Instance of environmentalSensor, to get ids and battery status
+     * @throws MqttException Error thrown by publish method of mqtt client
+     */
+    public static void publishDeviceBattery(IMqttClient mqttClient, EnvironmentalSensor environmentalSensor) throws MqttException {
+        String topic = String.format("%s/%s/%s/%s/%s/%s",
+                MqttConfigurationParameters.MQTT_BASIC_TOPIC,
+                MqttConfigurationParameters.ZONE_TOPIC,
+                environmentalSensor.getZoneId(),
+                MqttConfigurationParameters.ENV_SENSOR_TOPIC,
+                environmentalSensor.getId(),
+                MqttConfigurationParameters.BATTERY_PERCENTAGE_TOPIC);
 
-                String payloadString = gson.toJson(environmentalSensor.getBattery().getBatteryPercentage());
-                MqttMessage msg = new MqttMessage(payloadString.getBytes());
-                msg.setQos(0);
-                mqttClient.publish(topic, msg);
+        //TODO: only sensors data, not also id and so on
+        Gson gson = new Gson();
+        String payloadString = gson.toJson(environmentalSensor.getBattery().getBatteryPercentage());
+        logger.info("Publishing (publishDeviceBattery) to Topic: {} Data: {}", topic, payloadString);
 
-                logger.info("Battery status sen -> Topic : {} Payload: {}", topic, payloadString);
-            } else {
-                logger.error("Error: Topic or Msg = Null or MQTT Client is not Connected!");
-            }
-        } catch (Exception e) {
-            logger.error("Error while publishing battery status! Error: {}", e.getLocalizedMessage());
+        if (mqttClient.isConnected() && payloadString != null && topic != null) {
+            MqttMessage msg = new MqttMessage(payloadString.getBytes());
+            msg.setQos(0);
+            mqttClient.publish(topic, msg);
+
+            logger.info("Battery status sent -> Topic : {} Payload: {}", topic, payloadString);
+        } else {
+            logger.error("Error: Topic or Msg = Null or MQTT Client is not Connected!");
         }
-
     }
 
+    /**
+     * Send the sensor infos Payload to the specified MQTT topic
+     *
+     * @param mqttClient          The mqtt client
+     * @param environmentalSensor Instance of environmentalSensor, to get ids and battery status
+     * @throws MqttException Error thrown by publish method of mqtt client
+     */
+    public static void publishDeviceInfo(IMqttClient mqttClient, EnvironmentalSensor environmentalSensor) throws MqttException {
+        String topic = String.format("%s/%s/%s/%s/%s",
+                MqttConfigurationParameters.MQTT_BASIC_TOPIC,
+                MqttConfigurationParameters.ZONE_TOPIC,
+                environmentalSensor.getZoneId(),
+                MqttConfigurationParameters.ENV_SENSOR_TOPIC,
+                environmentalSensor.getId()
+        );
 
-    public static void publishDeviceInfo(IMqttClient mqttClient, String zoneId, EnvironmentalSensor objDescriptor) {
-        try {
-            Gson gson = new Gson();
-            if (mqttClient.isConnected()) {
-                String topic = String.format("%s/%s/%s/%s/%s",
-                        MqttConfigurationParameters.MQTT_BASIC_TOPIC,
-                        MqttConfigurationParameters.ZONE_TOPIC,
-                        zoneId,
-                        MqttConfigurationParameters.ENV_SENSOR_TOPIC,
-                        objDescriptor.getId()
-                );
-                String payloadString = gson.toJson(objDescriptor);
-                MqttMessage msg = new MqttMessage(payloadString.getBytes());
-                msg.setQos(0);
-                msg.setRetained(true);
-                mqttClient.publish(topic, msg);
+        Gson gson = new Gson();
+        String payloadString = gson.toJson(environmentalSensor);
 
-                logger.info("Device Data Correctly Published ! Topic : " + topic + " Payload:" + payloadString);
-            } else {
-                logger.error("Error: Topic or Msg = Null or MQTT Client is not Connected!");
-            }
-        } catch (Exception e) {
-            logger.error("Error while publishing battery status! Error: {}", e.getLocalizedMessage());
+        logger.info("Publishing (publishDeviceInfo) to Topic: {} Data: {}", topic, payloadString);
+        if (mqttClient.isConnected() && payloadString != null && topic != null) {
+            MqttMessage msg = new MqttMessage(payloadString.getBytes());
+            msg.setQos(0);
+            msg.setRetained(true);
+            mqttClient.publish(topic, msg);
+
+            logger.info("Device Data Correctly Published! Topic : " + topic + " Payload:" + payloadString);
+        } else {
+            logger.error("Error: Topic or Msg = Null or MQTT Client is not Connected!");
         }
-
     }
 
-    public static void publishTelemetryData(IMqttClient mqttClient, EnvironmentalSensor telemetryObject) {
+    /**
+     * Send the sensor telemetry data as Payload to the specified MQTT topic
+     *
+     * @param mqttClient          The mqtt client
+     * @param environmentalSensor Instance of environmentalSensor, to get ids and battery status
+     * @throws MqttException Error thrown by publish method of mqtt client
+     */
+    public static void publishTelemetryData(IMqttClient mqttClient, EnvironmentalSensor environmentalSensor) throws MqttException {
+        Gson gson = new Gson();
+        String topic = String.format("%s/%s/%s/%s/%s/%s",
+                MqttConfigurationParameters.MQTT_BASIC_TOPIC,
+                MqttConfigurationParameters.ZONE_TOPIC,
+                environmentalSensor.getZoneId(),
+                MqttConfigurationParameters.ENV_SENSOR_TOPIC,
+                environmentalSensor.getId(),
+                MqttConfigurationParameters.TELEMETRY_TOPIC);
 
-        try {
+        //TODO: only sensors data, not also id and so on
+        String payloadString = gson.toJson(environmentalSensor);
 
-            Gson gson = new Gson();
-
-            String topic = String.format("%s/%s/%s/%s/%s",
-                    MqttConfigurationParameters.MQTT_BASIC_TOPIC,
-                    MqttConfigurationParameters.ZONE_TOPIC,
-                    telemetryObject.getZoneId(),
-                    MqttConfigurationParameters.ENV_SENSOR_TOPIC,
-                    telemetryObject.getId());
-
-            //TODO: only sensors data, not also id and so on
-            String payloadString = gson.toJson(telemetryObject);
-
-            logger.info("Publishing to Topic: {} Data: {}", topic, payloadString);
-
-            if (mqttClient.isConnected() && payloadString != null && topic != null) {
-                MqttMessage msg = new MqttMessage(payloadString.getBytes());
-                msg.setQos(0);
-                msg.setRetained(true);
-                mqttClient.publish(topic, msg);
-                logger.info("Telemetry data correctly published!");
-            } else {
-                logger.error("Error: Topic or Msg = Null or MQTT Client is not Connected!");
-            }
-        } catch (Exception e) {
-            logger.error("Error while publishing battery status! Error: {}", e.getLocalizedMessage());
+        logger.info("Publishing (publishTelemetryData) to Topic: {} Data: {}", topic, payloadString);
+        if (mqttClient.isConnected() && payloadString != null && topic != null) {
+            MqttMessage msg = new MqttMessage(payloadString.getBytes());
+            msg.setQos(0);
+            msg.setRetained(true);
+            mqttClient.publish(topic, msg);
+            logger.info("Telemetry data correctly published!");
+        } else {
+            logger.error("Error: Topic or Msg = Null or MQTT Client is not Connected!");
         }
-
     }
 }
