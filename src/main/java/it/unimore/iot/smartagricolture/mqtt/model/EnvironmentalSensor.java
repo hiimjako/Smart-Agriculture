@@ -13,6 +13,10 @@ public class EnvironmentalSensor extends BaseIOTObject {
     public EnvironmentalSensor() {
     }
 
+    public EnvironmentalSensor(String zoneId) {
+        super(zoneId);
+    }
+
     public EnvironmentalSensor(double temperature, double brightness, double humidity, double rainLevel, int batteryPercentage, GeoLocation location) {
         this.temperatureSensor = new Temperature(temperature);
         this.brightnessSensor = new Brightness(brightness);

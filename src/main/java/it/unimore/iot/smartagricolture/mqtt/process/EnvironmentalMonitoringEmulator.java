@@ -15,7 +15,8 @@ public class EnvironmentalMonitoringEmulator {
     public static void main(String[] args) {
         try {
 
-            EnvironmentalSensor environmentalSensor = new EnvironmentalSensor();
+            String zoneId = "1";
+            EnvironmentalSensor environmentalSensor = new EnvironmentalSensor(zoneId);
 
             MqttClientPersistence persistence = new MemoryPersistence();
             IMqttClient mqttClient = new MqttClient(
@@ -34,18 +35,18 @@ public class EnvironmentalMonitoringEmulator {
 
             logger.info("Connected!");
 
-            Integer zoneId = 1;
 
             publishDeviceInfo(mqttClient, zoneId, environmentalSensor);
 
             while (environmentalSensor.getBattery().getBatteryPercentage() > 0) {
+                logger.info("Current battery level: {}", environmentalSensor.getBattery().getBatteryPercentage());
                 if (environmentalSensor.getBattery().isBatteryUnderThreshold()) {
                     publishDeviceBattery(mqttClient, environmentalSensor);
                 }
                 publishTelemetryData(mqttClient, environmentalSensor);
                 // simulazione scaricamento della batteria
                 environmentalSensor.getBattery().decreaseBatteryLevel(BATTERY_DRAIN);
-                Thread.sleep(1000);
+                Thread.sleep(2000);
             }
 
             mqttClient.disconnect();
@@ -85,7 +86,7 @@ public class EnvironmentalMonitoringEmulator {
     }
 
 
-    public static void publishDeviceInfo(IMqttClient mqttClient, Integer zoneId, EnvironmentalSensor objDescriptor) {
+    public static void publishDeviceInfo(IMqttClient mqttClient, String zoneId, EnvironmentalSensor objDescriptor) {
         try {
             Gson gson = new Gson();
             if (mqttClient.isConnected()) {
@@ -102,7 +103,7 @@ public class EnvironmentalMonitoringEmulator {
                 msg.setRetained(true);
                 mqttClient.publish(topic, msg);
 
-                logger.info(" Device Data Correctly Published ! Topic : " + topic + " Payload:" + payloadString);
+                logger.info("Device Data Correctly Published ! Topic : " + topic + " Payload:" + payloadString);
             } else {
                 logger.error("Error: Topic or Msg = Null or MQTT Client is not Connected!");
             }

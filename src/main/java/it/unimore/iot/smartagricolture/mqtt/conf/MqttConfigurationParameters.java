@@ -14,7 +14,7 @@ public class MqttConfigurationParameters {
     public static String BROKER_URL = String.format("tcp://%s:%d", BROKER_ADDRESS, BROKER_PORT);
     public static String MQTT_USERNAME = dotenv.get("MQTT_USERNAME");
     public static String MQTT_PASSWORD = dotenv.get("MQTT_PASSWORD");
-    public static String MQTT_BASIC_TOPIC = "/iot/agriculture/";
+    public static String MQTT_BASIC_TOPIC = "/iot/agriculture";
     public static String ZONE_TOPIC = "zone";
     public static String LIGHT_TOPIC = "light";
     public static String ENV_SENSOR_TOPIC = "environmental";
