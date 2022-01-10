@@ -1,6 +1,7 @@
 package it.unimore.iot.smartagricolture.mqtt.model;
 
 import it.unimore.iot.smartagricolture.mqtt.exception.InvalidValue;
+import it.unimore.iot.smartagricolture.mqtt.model.actuator.BooleanActuator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -11,8 +12,8 @@ import java.util.Arrays;
  * @project smart-agriculture
  * @created 02/01/2022 - 16:18
  */
-public class IrrigationController extends BaseIOTObject implements IBooleanActuator {
-    private boolean isActive = false;
+public class IrrigationController extends SmartObjectBase {
+    private final BooleanActuator actuator = new BooleanActuator();
     private String irrigationLevel = "medium";
     public static final ArrayList<String> allowedIrrigationLevels = new ArrayList<>(Arrays.asList("low", "medium", "high"));
     private boolean rotate = false;
@@ -20,30 +21,6 @@ public class IrrigationController extends BaseIOTObject implements IBooleanActua
     public IrrigationController() {
     }
 
-    public IrrigationController(String zoneId) {
-        super(zoneId);
-    }
-
-    public IrrigationController(boolean isActive, String irrigationLevel, boolean rotate) throws InvalidValue {
-        this.isActive = isActive;
-        this.setIrrigationLevel(irrigationLevel);
-        this.rotate = rotate;
-    }
-
-    @Override
-    public void setActive(boolean active) {
-        this.isActive = active;
-    }
-
-    @Override
-    public boolean isActive() {
-        return this.isActive;
-    }
-
-    @Override
-    public void toggleActivate() {
-        this.isActive = !this.isActive;
-    }
 
     public String getIrrigationLevel() {
         return irrigationLevel;
@@ -65,10 +42,14 @@ public class IrrigationController extends BaseIOTObject implements IBooleanActua
         this.rotate = rotate;
     }
 
+    public BooleanActuator getActuator() {
+        return actuator;
+    }
+
     @Override
     public String toString() {
         return "IrrigationController{" +
-                "isActive=" + isActive +
+                "actuator=" + actuator +
                 ", irrigationLevel='" + irrigationLevel + '\'' +
                 ", rotate=" + rotate +
                 '}';

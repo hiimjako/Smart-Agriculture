@@ -8,15 +8,10 @@ import java.util.UUID;
  * @project smart-agriculture
  * @created 02/01/2022 - 16:18
  */
-public class BaseIOTObject {
+public class SmartObjectBase {
     private String id = UUID.randomUUID().toString();
-    private String zoneId;
 
-    public BaseIOTObject() {
-    }
-
-    public BaseIOTObject(String zoneId) {
-        this.zoneId = zoneId;
+    public SmartObjectBase() {
     }
 
     public String getId() {
@@ -27,19 +22,10 @@ public class BaseIOTObject {
         this.id = id;
     }
 
-    public String getZoneId() {
-        return zoneId;
-    }
-
-    public void setZoneId(String zoneId) {
-        this.zoneId = zoneId;
-    }
-
     @Override
     public String toString() {
-        return "BaseIOTObject{" +
+        return "SmartObjectBase{" +
                 "id='" + id + '\'' +
-                ", zoneId='" + zoneId + '\'' +
                 '}';
     }
 }

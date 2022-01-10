@@ -1,5 +1,7 @@
 package it.unimore.iot.smartagricolture.mqtt.model.sensor;
 
+import it.unimore.iot.smartagricolture.mqtt.conf.MqttConfigurationParameters;
+
 /**
  * @author Alberto Moretti, 272804@studenti.unimore.it
  * @version 1.0.0
@@ -8,7 +10,6 @@ package it.unimore.iot.smartagricolture.mqtt.model.sensor;
  */
 public class Rain {
     private double value;
-    public static final int IS_RAIN_THRESHOLD = 20;
 
     public Rain() {
     }
@@ -26,8 +27,13 @@ public class Rain {
     }
 
     public boolean isRaining() {
-        return this.value >= IS_RAIN_THRESHOLD;
+        return isRaining(this.value);
     }
+
+    public static boolean isRaining(double rainLevel) {
+        return rainLevel < MqttConfigurationParameters.THRESHOLD_RAIN;
+    }
+
 
     @Override
     public String toString() {

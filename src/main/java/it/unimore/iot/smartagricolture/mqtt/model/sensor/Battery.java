@@ -1,5 +1,7 @@
 package it.unimore.iot.smartagricolture.mqtt.model.sensor;
 
+import it.unimore.iot.smartagricolture.mqtt.conf.MqttConfigurationParameters;
+
 /**
  * @author Alberto Moretti, 272804@studenti.unimore.it
  * @version 1.0.0
@@ -8,7 +10,6 @@ package it.unimore.iot.smartagricolture.mqtt.model.sensor;
  */
 public class Battery {
     private int batteryPercentage;
-    public static final int BATTERY_PERCENTAGE_THRESHOLD = 20;
     public static final int BATTERY_PERCENTAGE_MIN = 0;
     public static final int BATTERY_PERCENTAGE_MAX = 100;
 
@@ -48,8 +49,13 @@ public class Battery {
     }
 
     public boolean isBatteryUnderThreshold() {
-        return this.batteryPercentage < BATTERY_PERCENTAGE_THRESHOLD;
+        return isBatteryUnderThreshold(this.batteryPercentage);
     }
+
+    public static boolean isBatteryUnderThreshold(int batteryPercentage) {
+        return batteryPercentage < MqttConfigurationParameters.THRESHOLD_BATTERY_PERCENTAGE;
+    }
+
 
     @Override
     public String toString() {
