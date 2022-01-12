@@ -17,22 +17,23 @@ public class MqttConfigurationParameters {
     public static String MQTT_PASSWORD = dotenv.get("MQTT_PASSWORD");
 
     // Mqtt topic
-    public static String MQTT_BASIC_TOPIC = "/iot/agriculture";
+    public static final String MQTT_BASIC_TOPIC = "/iot/agriculture";
 
     //  sensors
-    public static String ZONE_TOPIC = "zone";
-    public static String SENSOR_LIGHT_TOPIC = "light";
-    public static String SENSOR_IRRIGATION_TOPIC = "irrigation";
-    public static String SENSOR_ENVIRONMENTAL_TOPIC = "environmental";
+    public static final int SENSOR_TOPIC_INDEX = 3;
+    public static final String ZONE_TOPIC = "zone";
+    public static final String SM_OBJECT_LIGHT_TOPIC = "light";
+    public static final String SM_OBJECT_IRRIGATION_TOPIC = "irrigation";
+    public static final String SM_OBJECT_ENVIRONMENTAL_TOPIC = "environmental";
 
     // params
-    public static String PRESENTATION_TOPIC = "info";
-    public static String TELEMETRY_TOPIC = "telemetry";
-    public static String BATTERY_PERCENTAGE_TOPIC = "battery";
-    public static String ACTUATOR_STATUS_TOPIC = "active";
+    public static final String PRESENTATION_TOPIC = "info";
+    public static final String TELEMETRY_TOPIC = "telemetry";
+    public static final String BATTERY_PERCENTAGE_TOPIC = "battery";
+    public static final String ACTUATOR_STATUS_TOPIC = "active";
 
     // constants
-    public static int THRESHOLD_BATTERY_PERCENTAGE = 20;
-    public static int THRESHOLD_RAIN = 10;
+    public static final int THRESHOLD_BATTERY_PERCENTAGE = 20;
+    public static final int THRESHOLD_RAIN = 10;
 
 }
