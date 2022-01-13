@@ -17,10 +17,10 @@ public class MqttConfigurationParameters {
     public static String MQTT_PASSWORD = dotenv.get("MQTT_PASSWORD");
 
     // Mqtt topic
-    public static final String MQTT_BASIC_TOPIC = "/iot/agriculture";
+    public static final String MQTT_BASIC_TOPIC = "/iot/agriculture/device";
 
     //  sensors
-    public static final int SENSOR_TOPIC_INDEX = 3;
+    public static final int SENSOR_TOPIC_INDEX = 4;
     public static final String ZONE_TOPIC = "zone";
     public static final String SM_OBJECT_LIGHT_TOPIC = "light";
     public static final String SM_OBJECT_IRRIGATION_TOPIC = "irrigation";
@@ -28,6 +28,7 @@ public class MqttConfigurationParameters {
 
     // params
     public static final String PRESENTATION_TOPIC = "info";
+    public static final String CONFIGURATION_TOPIC = "setting";
     public static final String TELEMETRY_TOPIC = "telemetry";
     public static final String BATTERY_PERCENTAGE_TOPIC = "battery";
     public static final String ACTUATOR_STATUS_TOPIC = "active";

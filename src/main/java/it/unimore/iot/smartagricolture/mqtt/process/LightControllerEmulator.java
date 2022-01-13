@@ -5,14 +5,21 @@ import it.unimore.iot.smartagricolture.mqtt.conf.MqttConfigurationParameters;
 import it.unimore.iot.smartagricolture.mqtt.model.LightController;
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class LightControllerEmulator {
-    private static final int MESSAGE_COUNT = 1000;
+    private static final Gson gson = new Gson();
+    private final static Logger logger = LoggerFactory.getLogger(LightControllerEmulator.class);
+
 
     public static void main(String[] args) {
         try {
 
             LightController lightController = new LightController();
+            lightController.getActuator().setActive(true);
+            // TODO: to remove
+            lightController.setId("test-1234");
 
             MqttClientPersistence persistence = new MemoryPersistence();
             IMqttClient mqttClient = new MqttClient(
@@ -29,38 +36,40 @@ public class LightControllerEmulator {
 
             mqttClient.connect(options);
 
-            System.out.println("Connected!");
+            logger.info("Connected!");
 
-            Integer zoneId = 1;
+            publishDeviceInfo(mqttClient, lightController);
+            subscribeConfigurationTopic(mqttClient, lightController);
 
-            publishDeviceInfo(mqttClient, zoneId, lightController);
 
-            for (int i = 0; i < MESSAGE_COUNT; i++) {
-                lightController.toggleActivate();
-                publishTelemetryData(mqttClient, zoneId, lightController.getId(), lightController);
-                Thread.sleep(3000);
+            for (int i = 0; i < 1000000; i++) {
+                logger.info("   LIGHT STATUS: active -> " + lightController.getActuator().isActive());
+                Thread.sleep(1000);
             }
 
             mqttClient.disconnect();
             mqttClient.close();
-            System.out.println(" Disconnected !");
+            logger.info("Disconnected!");
 
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public static void publishDeviceInfo(IMqttClient mqttClient, Integer zoneId, LightController lightDescriptor) {
+    /**
+     * Send the sensor infos Payload to the specified MQTT topic
+     *
+     * @param mqttClient      The mqtt client
+     * @param lightDescriptor Instance of LightController
+     */
+    public static void publishDeviceInfo(IMqttClient mqttClient, LightController lightDescriptor) {
         try {
-            Gson gson = new Gson();
             if (mqttClient.isConnected()) {
-                String topic = String.format("%s/%s/%d/%s/%d/%s",
+                String topic = String.format("%s/%s/%s/%s",
                         MqttConfigurationParameters.MQTT_BASIC_TOPIC,
-                        MqttConfigurationParameters.ZONE_TOPIC,
-                        zoneId,
-                        MqttConfigurationParameters.LIGHT_TOPIC,
+                        MqttConfigurationParameters.SM_OBJECT_LIGHT_TOPIC,
                         lightDescriptor.getId(),
-                        MqttConfigurationParameters.ACTUATOR_STATUS_TOPIC);
+                        MqttConfigurationParameters.PRESENTATION_TOPIC);
 
                 String payloadString = gson.toJson(lightDescriptor);
                 MqttMessage msg = new MqttMessage(payloadString.getBytes());
@@ -68,47 +77,38 @@ public class LightControllerEmulator {
                 msg.setRetained(true);
                 mqttClient.publish(topic, msg);
 
-                System.out.println(" Device Data Correctly Published ! Topic : " + topic + " Payload:" + payloadString);
+                logger.info("Device Data Correctly Published! Topic: " + topic + " Payload:" + payloadString);
             } else {
-                System.err.println(" Error : Topic or Msg = Null or MQTT Client is not Connected !");
+                logger.error("Error: Topic or Msg = Null or MQTT Client is not Connected!");
             }
         } catch (Exception e) {
-            System.err.println(" Error Publishing Vehicle Information ! Error : " + e.getLocalizedMessage());
+            logger.error("Error Publishing LightController Information! Error : " + e.getLocalizedMessage());
         }
-
     }
 
-    public static void publishTelemetryData(IMqttClient mqttClient, Integer zoneId, String vehicleId, LightController telemetryData) {
+    /**
+     * Send the sensor infos Payload to the specified MQTT topic
+     *
+     * @param mqttClient      The mqtt client
+     * @param lightController Instance of LightController
+     */
+    public static void subscribeConfigurationTopic(IMqttClient mqttClient, LightController lightController) throws MqttException {
+        int SubscriptionQoS = 1;
+        String topicToSubscribe = String.format("%s/%s/%s/%s",
+                MqttConfigurationParameters.MQTT_BASIC_TOPIC,
+                MqttConfigurationParameters.SM_OBJECT_LIGHT_TOPIC,
+                lightController.getId(),
+                MqttConfigurationParameters.CONFIGURATION_TOPIC);
 
-        try {
-
-            Gson gson = new Gson();
-
-            String topic = String.format("%s/%s/%d/%s/%d/%s",
-                    MqttConfigurationParameters.MQTT_BASIC_TOPIC,
-                    MqttConfigurationParameters.ZONE_TOPIC,
-                    zoneId,
-                    MqttConfigurationParameters.LIGHT_TOPIC,
-                    vehicleId,
-                    MqttConfigurationParameters.ACTUATOR_STATUS_TOPIC);
-
-            String payloadString = gson.toJson(telemetryData.isActive());
-
-            System.out.println(" Publishing to Topic : " + topic + " Data : " + payloadString);
-
-            if (mqttClient.isConnected() && payloadString != null && topic != null) {
-
-                MqttMessage msg = new MqttMessage(payloadString.getBytes());
-                msg.setQos(0);
-                msg.setRetained(true);
-                mqttClient.publish(topic, msg);
-                System.out.println(" Data Correctly Published !");
-            } else {
-                System.err.println(" Error : Topic or Msg = Null or MQTT Client is not Connected!");
-            }
-        } catch (Exception e) {
-            System.err.println(" Error Publishing Telemetry Information ! Error : " + e.getLocalizedMessage());
+        if (mqttClient.isConnected()) {
+            mqttClient.subscribe(topicToSubscribe, SubscriptionQoS, (topic, msg) -> {
+                byte[] payload = msg.getPayload();
+                LightController newConfiguration = gson.fromJson(new String(payload), LightController.class);
+                lightController.getActuator().setActive(newConfiguration.getActuator().isActive());
+                logger.info("New configuration received on: (" + topic + ")  with: " + newConfiguration.getActuator());
+            });
+        } else {
+            logger.error("Mqtt client not connected");
         }
-
     }
 }
