@@ -1,7 +1,7 @@
 package it.unimore.iot.smartagricolture.mqtt.model;
 
-import it.unimore.iot.smartagricolture.mqtt.exception.InvalidValue;
 import it.unimore.iot.smartagricolture.mqtt.model.actuator.BooleanActuator;
+import it.unimore.iot.smartagricolture.mqtt.model.actuator.Time;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -15,23 +15,42 @@ import java.util.Arrays;
 public class IrrigationController extends SmartObjectBase {
     private final BooleanActuator actuator = new BooleanActuator();
     private String irrigationLevel = "medium";
-    public static final ArrayList<String> allowedIrrigationLevels = new ArrayList<>(Arrays.asList("low", "medium", "high"));
+    private Time activationPolicy = new Time();
+    public static final ArrayList<String> ALLOWED_IRRIGATION_LEVELS = new ArrayList<>(Arrays.asList("low", "medium", "high"));
+
     private boolean rotate = false;
 
     public IrrigationController() {
     }
 
+    public IrrigationController(Time activationPolicy) {
+        this.activationPolicy = activationPolicy;
+    }
+
+    public IrrigationController(Time activationPolicy, String irrigationLevel, boolean rotate) {
+        this.activationPolicy = activationPolicy;
+        this.setIrrigationLevel(irrigationLevel);
+        this.rotate = rotate;
+    }
 
     public String getIrrigationLevel() {
         return irrigationLevel;
     }
 
-    public void setIrrigationLevel(String irrigationLevel) throws InvalidValue {
-        if (allowedIrrigationLevels.contains(irrigationLevel))
+    public void setIrrigationLevel(String irrigationLevel) {
+        if (ALLOWED_IRRIGATION_LEVELS.contains(irrigationLevel))
             this.irrigationLevel = irrigationLevel;
         else
-            throw new InvalidValue("irrigationLevel: '%s' not allowed, must be in (%s)".formatted(irrigationLevel,
-                    String.join(", ", allowedIrrigationLevels)));
+            throw new IllegalArgumentException("irrigationLevel: '%s' not allowed, must be in (%s)".formatted(irrigationLevel,
+                    String.join(", ", ALLOWED_IRRIGATION_LEVELS)));
+    }
+
+    public Time getActivationPolicy() {
+        return activationPolicy;
+    }
+
+    public void setActivationPolicy(Time activationPolicy) {
+        this.activationPolicy = activationPolicy;
     }
 
     public boolean isRotate() {
@@ -51,6 +70,7 @@ public class IrrigationController extends SmartObjectBase {
         return "IrrigationController{" +
                 "actuator=" + actuator +
                 ", irrigationLevel='" + irrigationLevel + '\'' +
+                ", activationPolicy=" + activationPolicy +
                 ", rotate=" + rotate +
                 '}';
     }

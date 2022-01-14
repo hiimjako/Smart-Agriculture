@@ -44,24 +44,47 @@ public class DataCollectorEmulator {
             System.out.println("Connected!");
             System.out.println("Start monitoring");
 
-//            Esempio di configurazione custom, con le luci attive
+            // Creating the zone --> should be done into the dashboard when the operator installs
+            // the devices, same for the default configurations
+            dataCollector.createZone(zoneIdentifier);
+
+            // Default lightController: Esempio di configurazione custom, con le luci attive
             LightController defaultLightConfiguration = new LightController();
             defaultLightConfiguration.getActuator().setActive(true);
-
-            dataCollector.createZone(zoneIdentifier);
             dataCollector.changeDefaultSettingsZone(zoneIdentifier, defaultLightConfiguration);
+
+            // Default irrigationController: Esempio di configurazione custom
+            IrrigationController defaultIrrigationConfiguration = new IrrigationController();
+            defaultIrrigationConfiguration.getActuator().setActive(true);
+            defaultIrrigationConfiguration.getActivationPolicy().setTimePolicy("16 * 1 * * *");
+            defaultIrrigationConfiguration.getActivationPolicy().setDurationMinute(1);
+            defaultIrrigationConfiguration.setIrrigationLevel("medium");
+            defaultIrrigationConfiguration.setRotate(false);
+            dataCollector.changeDefaultSettingsZone(zoneIdentifier, defaultIrrigationConfiguration);
 
             subscribePresentationTopic(mqttClient, dataCollector);
             subscribeEnvironmentControllerTopic(mqttClient);
 
             // simulazione di cambio configurazione dopo 10 secondi
-            Thread.sleep(10000);
+            Thread.sleep(5000);
             logger.info("Sending new configuration to lights!");
             LightController newLightConfiguration = new LightController();
             newLightConfiguration.getActuator().setActive(false);
-            dataCollector.changeDefaultSettingsZone(zoneIdentifier, newLightConfiguration);
-            sendNewZoneConfigurationToAll(mqttClient, zoneIdentifier, dataCollector);
 
+            dataCollector.changeDefaultSettingsZone(zoneIdentifier, newLightConfiguration);
+//            sendNewZoneConfigurationToAllLightController(mqttClient, zoneIdentifier, dataCollector);
+
+            Thread.sleep(5000);
+            logger.info("Sending new configuration to irrigation!");
+            IrrigationController newIrrigationConfiguration = new IrrigationController();
+            newIrrigationConfiguration.getActuator().setActive(true);
+            newIrrigationConfiguration.getActivationPolicy().setTimePolicy("5 4 * * * *");
+            newIrrigationConfiguration.getActivationPolicy().setDurationMinute(1);
+            newIrrigationConfiguration.setIrrigationLevel("low");
+            newIrrigationConfiguration.setRotate(true);
+
+            dataCollector.changeDefaultSettingsZone(zoneIdentifier, newIrrigationConfiguration);
+            sendNewZoneConfigurationToAllIrrigationController(mqttClient, zoneIdentifier, dataCollector);
 
 //            mqttClient.disconnect();
 //            mqttClient.close();
@@ -81,34 +104,39 @@ public class DataCollectorEmulator {
      * @param mqttClient    The mqtt client
      * @param dataCollector The data collector object that manages the zones and controllers
      */
-    public static void subscribePresentationTopic(@NotNull IMqttClient mqttClient, DataCollector dataCollector) throws MqttException {
-        int SubscriptionQoS = 1;
-        String topicToSubscribe = String.format("%s/+/+/%s",
-                MqttConfigurationParameters.MQTT_BASIC_TOPIC,
-                MqttConfigurationParameters.PRESENTATION_TOPIC);
+    public static void subscribePresentationTopic(@NotNull IMqttClient mqttClient, DataCollector dataCollector) {
+        try {
+            int SubscriptionQoS = 1;
+            String topicToSubscribe = String.format("%s/+/+/%s",
+                    MqttConfigurationParameters.MQTT_BASIC_TOPIC,
+                    MqttConfigurationParameters.PRESENTATION_TOPIC);
 
-        if (mqttClient.isConnected()) {
+            if (mqttClient.isConnected()) {
 //            FIXME: evitabile il thread?
-            mqttClient.subscribe(topicToSubscribe, SubscriptionQoS, (topic, msg) -> new Thread(() -> {
-                try {
-                    byte[] payload = msg.getPayload();
-                    String sensorType = getNthParamTopic(topic, MqttConfigurationParameters.SENSOR_TOPIC_INDEX);
-                    SmartObjectBase smartObjectBase = gson.fromJson(new String(msg.getPayload()), SmartObjectBase.class);
+                logger.info("Subscribed to topic: (" + topicToSubscribe + ")");
+                mqttClient.subscribe(topicToSubscribe, SubscriptionQoS, (topic, msg) -> new Thread(() -> {
+                    try {
+                        byte[] payload = msg.getPayload();
+                        String sensorType = getNthParamTopic(topic, MqttConfigurationParameters.SENSOR_TOPIC_INDEX);
+                        SmartObjectBase smartObjectBase = gson.fromJson(new String(msg.getPayload()), SmartObjectBase.class);
 
-                    switch (sensorType) {
-                        case MqttConfigurationParameters.SM_OBJECT_LIGHT_TOPIC -> dataCollector.addSmartObjectToZone(zoneIdentifier, gson.fromJson(new String(msg.getPayload()), LightController.class));
-                        case MqttConfigurationParameters.SM_OBJECT_IRRIGATION_TOPIC -> dataCollector.addSmartObjectToZone(zoneIdentifier, gson.fromJson(new String(msg.getPayload()), IrrigationController.class));
-                        case MqttConfigurationParameters.SM_OBJECT_ENVIRONMENTAL_TOPIC -> dataCollector.addSmartObjectToZone(zoneIdentifier, gson.fromJson(new String(msg.getPayload()), EnvironmentalSensor.class));
+                        switch (sensorType) {
+                            case MqttConfigurationParameters.SM_OBJECT_LIGHT_TOPIC -> dataCollector.addSmartObjectToZone(zoneIdentifier, gson.fromJson(new String(msg.getPayload()), LightController.class));
+                            case MqttConfigurationParameters.SM_OBJECT_IRRIGATION_TOPIC -> dataCollector.addSmartObjectToZone(zoneIdentifier, gson.fromJson(new String(msg.getPayload()), IrrigationController.class));
+                            case MqttConfigurationParameters.SM_OBJECT_ENVIRONMENTAL_TOPIC -> dataCollector.addSmartObjectToZone(zoneIdentifier, gson.fromJson(new String(msg.getPayload()), EnvironmentalSensor.class));
+                        }
+
+                        sendNewZoneConfiguration(mqttClient, zoneIdentifier, smartObjectBase.getId(), dataCollector);
+                        logger.info("subscribePresentationTopic -> Message Received (" + topic + ") Message Received: " + new String(payload));
+                    } catch (MqttException e) {
+                        e.printStackTrace();
                     }
-
-                    sendNewZoneConfiguration(mqttClient, zoneIdentifier, smartObjectBase.getId(), dataCollector);
-                    logger.info("subscribePresentationTopic -> Message Received (" + topic + ") Message Received: " + new String(payload));
-                } catch (MqttException e) {
-                    e.printStackTrace();
-                }
-            }).start());
-        } else {
-            logger.error("Mqtt client not connected");
+                }).start());
+            } else {
+                logger.error("Mqtt client not connected");
+            }
+        } catch (Exception e) {
+            logger.error("Error subscribing to configuration topic! Error : " + e.getLocalizedMessage());
         }
     }
 
@@ -144,6 +172,49 @@ public class DataCollectorEmulator {
     }
 
     //  MESSAGES
+
+    /**
+     * Function that sends the new configuration to all clients
+     * It sets a retained message, so the new client that connects will have
+     * the latest configuration on subscription.
+     *
+     * @param mqttClient    The mqtt client
+     * @param zoneId        The zone where publish the configuration
+     * @param dataCollector The data collector object that manages the zones and controllers
+     */
+    public static void sendNewZoneConfigurationToAllLightController(@NotNull IMqttClient mqttClient, int zoneId, DataCollector dataCollector) throws MqttException {
+        ZoneSettings zoneSettings = dataCollector.getZoneSettings(zoneId);
+        if (zoneSettings != null) {
+            for (SmartObjectBase smartObject : zoneSettings.getSmartObjects()) {
+                if (smartObject instanceof LightController)
+                    sendNewZoneConfiguration(mqttClient, zoneId, smartObject.getId(), dataCollector);
+            }
+        } else {
+            logger.error("Default configuration not found");
+        }
+    }
+
+    /**
+     * Function that sends the new configuration to all clients
+     * It sets a retained message, so the new client that connects will have
+     * the latest configuration on subscription.
+     *
+     * @param mqttClient    The mqtt client
+     * @param zoneId        The zone where publish the configuration
+     * @param dataCollector The data collector object that manages the zones and controllers
+     */
+    public static void sendNewZoneConfigurationToAllIrrigationController(@NotNull IMqttClient mqttClient, int zoneId, DataCollector dataCollector) throws MqttException {
+        ZoneSettings zoneSettings = dataCollector.getZoneSettings(zoneId);
+        if (zoneSettings != null) {
+            for (SmartObjectBase smartObject : zoneSettings.getSmartObjects()) {
+                if (smartObject instanceof IrrigationController)
+                    sendNewZoneConfiguration(mqttClient, zoneId, smartObject.getId(), dataCollector);
+            }
+        } else {
+            logger.error("Default configuration not found");
+        }
+    }
+
 
     /**
      * Function that sends the new configuration to all clients
@@ -227,7 +298,7 @@ public class DataCollectorEmulator {
 
         String topic = String.format("%s/%s/%s/%s",
                 MqttConfigurationParameters.MQTT_BASIC_TOPIC,
-                MqttConfigurationParameters.SM_OBJECT_LIGHT_TOPIC,
+                MqttConfigurationParameters.SM_OBJECT_IRRIGATION_TOPIC,
                 deviceId,
                 MqttConfigurationParameters.CONFIGURATION_TOPIC);
 
@@ -276,38 +347,6 @@ public class DataCollectorEmulator {
             msg.setRetained(retained);
             mqttClient.publish(topic, msg);
             logger.info("Payload sent -> Topic : {} Payload: {}", topic, payload);
-        } else {
-            logger.error("Error: Topic or Msg = Null or MQTT Client is not Connected!");
-        }
-    }
-
-    /**
-     * Send active status to all rain sensor of zone to the specified MQTT topic
-     *
-     * @param mqttClient The mqtt client
-     * @param active     The status to set to all rain actuators
-     *                   True: to start all of them
-     *                   False: to stop all of them
-     * @throws MqttException Error thrown by publish method of mqtt client
-     */
-    public static void publishActiveStatusActuators(@NotNull IMqttClient mqttClient, String zoneId, Boolean active) throws MqttException {
-        String topic = String.format("%s/%s/%s/%s/%s",
-                MqttConfigurationParameters.MQTT_BASIC_TOPIC,
-                MqttConfigurationParameters.ZONE_TOPIC,
-                zoneId,
-                MqttConfigurationParameters.SM_OBJECT_IRRIGATION_TOPIC,
-                MqttConfigurationParameters.ACTUATOR_STATUS_TOPIC);
-
-        Gson gson = new Gson();
-        String payloadString = gson.toJson(active);
-        logger.info("Publishing (publishActiveStatusActuators) to Topic: {} Data: {}", topic, payloadString);
-
-        if (mqttClient.isConnected() && payloadString != null && topic != null) {
-            MqttMessage msg = new MqttMessage(payloadString.getBytes());
-            msg.setQos(2);
-            mqttClient.publish(topic, msg);
-
-            logger.info("Actuator status sent -> Topic : {} Payload: {}", topic, payloadString);
         } else {
             logger.error("Error: Topic or Msg = Null or MQTT Client is not Connected!");
         }

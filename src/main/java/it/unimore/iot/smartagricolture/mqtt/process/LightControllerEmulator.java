@@ -56,6 +56,7 @@ public class LightControllerEmulator {
         }
     }
 
+
     /**
      * Send the sensor infos Payload to the specified MQTT topic
      *
@@ -64,14 +65,14 @@ public class LightControllerEmulator {
      */
     public static void publishDeviceInfo(IMqttClient mqttClient, LightController lightDescriptor) {
         try {
-            if (mqttClient.isConnected()) {
-                String topic = String.format("%s/%s/%s/%s",
-                        MqttConfigurationParameters.MQTT_BASIC_TOPIC,
-                        MqttConfigurationParameters.SM_OBJECT_LIGHT_TOPIC,
-                        lightDescriptor.getId(),
-                        MqttConfigurationParameters.PRESENTATION_TOPIC);
+            String topic = String.format("%s/%s/%s/%s",
+                    MqttConfigurationParameters.MQTT_BASIC_TOPIC,
+                    MqttConfigurationParameters.SM_OBJECT_LIGHT_TOPIC,
+                    lightDescriptor.getId(),
+                    MqttConfigurationParameters.PRESENTATION_TOPIC);
 
-                String payloadString = gson.toJson(lightDescriptor);
+            String payloadString = gson.toJson(lightDescriptor);
+            if (mqttClient.isConnected() && payloadString != null && topic != null) {
                 MqttMessage msg = new MqttMessage(payloadString.getBytes());
                 msg.setQos(0);
                 msg.setRetained(true);
@@ -87,28 +88,34 @@ public class LightControllerEmulator {
     }
 
     /**
-     * Send the sensor infos Payload to the specified MQTT topic
+     * Function that subscribes the object to the configuration topic
+     * So here where it receives the behaviour updates
      *
      * @param mqttClient      The mqtt client
      * @param lightController Instance of LightController
      */
-    public static void subscribeConfigurationTopic(IMqttClient mqttClient, LightController lightController) throws MqttException {
-        int SubscriptionQoS = 1;
-        String topicToSubscribe = String.format("%s/%s/%s/%s",
-                MqttConfigurationParameters.MQTT_BASIC_TOPIC,
-                MqttConfigurationParameters.SM_OBJECT_LIGHT_TOPIC,
-                lightController.getId(),
-                MqttConfigurationParameters.CONFIGURATION_TOPIC);
+    public static void subscribeConfigurationTopic(IMqttClient mqttClient, LightController lightController) {
+        try {
+            int SubscriptionQoS = 1;
+            String topicToSubscribe = String.format("%s/%s/%s/%s",
+                    MqttConfigurationParameters.MQTT_BASIC_TOPIC,
+                    MqttConfigurationParameters.SM_OBJECT_LIGHT_TOPIC,
+                    lightController.getId(),
+                    MqttConfigurationParameters.CONFIGURATION_TOPIC);
 
-        if (mqttClient.isConnected()) {
-            mqttClient.subscribe(topicToSubscribe, SubscriptionQoS, (topic, msg) -> {
-                byte[] payload = msg.getPayload();
-                LightController newConfiguration = gson.fromJson(new String(payload), LightController.class);
-                lightController.getActuator().setActive(newConfiguration.getActuator().isActive());
-                logger.info("New configuration received on: (" + topic + ")  with: " + newConfiguration.getActuator());
-            });
-        } else {
-            logger.error("Mqtt client not connected");
+            if (mqttClient.isConnected()) {
+                logger.info("Subscribed to topic: (" + topicToSubscribe + ")");
+                mqttClient.subscribe(topicToSubscribe, SubscriptionQoS, (topic, msg) -> {
+                    byte[] payload = msg.getPayload();
+                    LightController newConfiguration = gson.fromJson(new String(payload), LightController.class);
+                    lightController.getActuator().setActive(newConfiguration.getActuator().isActive());
+                    logger.info("New configuration received on: (" + topic + ")  with: " + newConfiguration.getActuator());
+                });
+            } else {
+                logger.error("Mqtt client not connected");
+            }
+        } catch (Exception e) {
+            logger.error("Error subscribing to configuration topic! Error : " + e.getLocalizedMessage());
         }
     }
 }
