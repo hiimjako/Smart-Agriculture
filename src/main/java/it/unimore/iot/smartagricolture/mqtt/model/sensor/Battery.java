@@ -13,6 +13,9 @@ public class Battery {
     public static final int BATTERY_PERCENTAGE_MIN = 0;
     public static final int BATTERY_PERCENTAGE_MAX = 100;
 
+    public static final String SENML_UNIT = "%EL";
+    public static final String SENML_NAME = "battery";
+
 
     public Battery() {
         //Only for simulation purposes
