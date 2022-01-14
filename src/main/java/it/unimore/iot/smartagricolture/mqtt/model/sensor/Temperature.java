@@ -10,6 +10,10 @@ public class Temperature {
     private double value;
     public static final int TEMPERATURE_THRESHOLD = 20;
 
+    public static final String SENML_NAME = "temperature";
+    public static final String SENML_UNIT = "Cel";
+
+
     public Temperature() {
     }
 

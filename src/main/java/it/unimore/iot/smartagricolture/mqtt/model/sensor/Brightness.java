@@ -9,6 +9,9 @@ package it.unimore.iot.smartagricolture.mqtt.model.sensor;
 public class Brightness {
     private double value;
 
+    public static final String SENML_NAME = "brightness";
+    public static final String SENML_UNIT = "lm";
+
     public Brightness() {
     }
 

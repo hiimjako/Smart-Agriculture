@@ -9,6 +9,9 @@ package it.unimore.iot.smartagricolture.mqtt.model.sensor;
 public class Humidity {
     private double value;
 
+    public static final String SENML_NAME = "humidity";
+    public static final String SENML_UNIT = "%RH";
+
     public Humidity() {
     }
 
