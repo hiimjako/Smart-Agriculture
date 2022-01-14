@@ -24,7 +24,11 @@ public class IrrigationControllerEmulator {
             IrrigationController irrigationController = new IrrigationController();
             // TODO: to remove
             irrigationController.setId("test-irrigation-1234");
-            irrigationController.getBattery().setBatteryPercentage(26);
+            irrigationController.getBattery().setBatteryPercentage(100);
+
+            // Simulation of running
+            Thread thread = new Thread(irrigationController);
+            thread.start();
 
             MqttClientPersistence persistence = new MemoryPersistence();
             IMqttClient mqttClient = new MqttClient(
@@ -46,9 +50,6 @@ public class IrrigationControllerEmulator {
             publishDeviceInfo(mqttClient, irrigationController);
             subscribeConfigurationTopic(mqttClient, irrigationController);
 
-            // Simulation of running
-            Thread thread = new Thread(irrigationController);
-            thread.start();
 
 //            for (int i = 0; i < 1000000; i++) {
 //                logger.info("   IRRIGATION STATUS: " + irrigationController);
