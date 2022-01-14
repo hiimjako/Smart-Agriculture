@@ -35,6 +35,5 @@ public class MqttConfigurationParameters {
 
     // constants
     public static final int THRESHOLD_BATTERY_PERCENTAGE = 20;
-    public static final int THRESHOLD_RAIN = 10;
 
 }
