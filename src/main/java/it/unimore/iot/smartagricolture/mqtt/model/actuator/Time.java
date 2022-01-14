@@ -4,6 +4,12 @@ import org.springframework.scheduling.support.CronSequenceGenerator;
 
 import java.util.Date;
 
+/**
+ * @author Alberto Moretti, 272804@studenti.unimore.it
+ * @version 1.0.0
+ * @project smart-agriculture
+ * @created 14/01/2022 - 13:11
+ */
 public class Time {
     // default al primo giorno dell'anno
     private String timeSchedule = "0 0 0 1 1 0"; //"sec min hour day(month) month day(week)";
