@@ -75,29 +75,29 @@ public class EnvironmentalSensor extends SmartObjectBase implements ISenMLFormat
         senMLRecord.setV(this.battery.getBatteryPercentage());
         senMLPack.add(senMLRecord);
 
-        senMLPack = new SenMLPack();
         //temperatureSensor
+        senMLRecord = new SenMLRecord();
         senMLRecord.setN(Temperature.SENML_NAME);
         senMLRecord.setU(Temperature.SENML_UNIT);
         senMLRecord.setV(this.temperatureSensor.getValue());
         senMLPack.add(senMLRecord);
 
-        senMLPack = new SenMLPack();
         //brightnessSensor
+        senMLRecord = new SenMLRecord();
         senMLRecord.setN(Brightness.SENML_NAME);
         senMLRecord.setU(Brightness.SENML_UNIT);
         senMLRecord.setV(this.brightnessSensor.getValue());
         senMLPack.add(senMLRecord);
 
-        senMLPack = new SenMLPack();
         //humiditySensor
+        senMLRecord = new SenMLRecord();
         senMLRecord.setN(Humidity.SENML_NAME);
         senMLRecord.setU(Humidity.SENML_UNIT);
         senMLRecord.setV(this.humiditySensor.getValue());
         senMLPack.add(senMLRecord);
 
-        senMLPack = new SenMLPack();
         //rainSensor
+        senMLRecord = new SenMLRecord();
         senMLRecord.setN(Rain.SENML_NAME);
         senMLRecord.setVb(this.rainSensor.isRaining());
         senMLPack.add(senMLRecord);
