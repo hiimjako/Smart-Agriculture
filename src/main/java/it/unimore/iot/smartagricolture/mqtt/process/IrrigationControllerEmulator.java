@@ -97,7 +97,7 @@ public class IrrigationControllerEmulator {
                 logger.error("Error: Topic or Msg = Null or MQTT Client is not Connected!");
             }
         } catch (Exception e) {
-            logger.error("Error Publishing LightController Information! Error : " + e.getLocalizedMessage());
+            logger.error("Error Publishing IrrigationController Information! Error : " + e.getLocalizedMessage());
         }
     }
 
