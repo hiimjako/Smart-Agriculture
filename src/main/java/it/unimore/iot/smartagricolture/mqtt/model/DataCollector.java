@@ -9,6 +9,7 @@ import java.util.UUID;
 public class DataCollector {
     private final String id = UUID.randomUUID().toString();
     private final Map<Number, ZoneSettings> zonesSettings = new HashMap<>();
+    private HashMap<String, Number> deviceZoneMap = new HashMap<>();
 
     public DataCollector() {
     }
@@ -28,12 +29,23 @@ public class DataCollector {
         return zonesSettings.get(zoneId);
     }
 
+    public HashMap<String, Number> getDeviceZoneMap() {
+        return deviceZoneMap;
+    }
+
+    public void setDeviceZoneMap(HashMap<String, Number> deviceZoneMap) {
+        this.deviceZoneMap = deviceZoneMap;
+    }
+
     public ZoneSettings createZone(int zoneId) {
         return this.zonesSettings.computeIfAbsent(zoneId, v -> new ZoneSettings());
     }
 
     public void addSmartObjectToZone(int zoneId, SmartObjectBase smartObject) {
-        this.createZone(zoneId).addSmartObject(smartObject);
+        boolean hasInserted = this.createZone(zoneId).addSmartObject(smartObject);
+        if (hasInserted) {
+            this.deviceZoneMap.put(smartObject.getId(), zoneId);
+        }
     }
 
     public void changeDefaultSettingsZone(int zoneId, SmartObjectBase smartObjectBase) {
@@ -48,5 +60,9 @@ public class DataCollector {
         } else {
             System.out.println("The zone does not exists!");
         }
+    }
+
+    public int getDeviceZone(String deviceId) {
+        return (int) this.deviceZoneMap.get(deviceId);
     }
 }

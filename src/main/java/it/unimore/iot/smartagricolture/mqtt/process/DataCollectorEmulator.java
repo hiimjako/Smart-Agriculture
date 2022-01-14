@@ -24,9 +24,9 @@ import static it.unimore.iot.smartagricolture.mqtt.utils.utils.getNthParamTopic;
 public class DataCollectorEmulator {
 
     private final static Logger logger = LoggerFactory.getLogger(DataCollectorEmulator.class);
-    private static final boolean sendNewConfigurationDemo = false;
+    private static final boolean sendNewConfigurationDemo = true;
     private static final Gson gson = new Gson();
-    private static final int zoneIdentifier = 1;
+    private static final int zoneIdentifier = 3;
 
     public static void main(String[] args) {
         try {
@@ -62,7 +62,7 @@ public class DataCollectorEmulator {
 
             // Default irrigationController: Esempio di configurazione custom
             IrrigationController defaultIrrigationConfiguration = new IrrigationController();
-            defaultIrrigationConfiguration.getActuator().setActive(false);
+            defaultIrrigationConfiguration.getActuator().setActive(true);
             defaultIrrigationConfiguration.getActivationPolicy().setTimeSchedule("01 * * * * *");
             // Test per interruzione prima della fine
 //            defaultIrrigationConfiguration.getActivationPolicy().setDurationHour(1);
@@ -76,21 +76,19 @@ public class DataCollectorEmulator {
             subscribeIrrigationControllerTelemetryTopic(mqttClient, dataCollector);
             subscribeEnvironmentControllerTelemetryTopic(mqttClient, dataCollector);
 
-            // Send as retained the default configurations
+            // Send as retained the default configurations -> reset retained with default
             sendNewZoneConfigurationToAllSmartObjects(mqttClient, zoneIdentifier, dataCollector);
 
             if (sendNewConfigurationDemo) {
                 // simulazione di cambio configurazione dopo 10 secondi
                 Thread.sleep(5000);
-                logger.info("Sending new configuration to lights!");
                 LightController newLightConfiguration = new LightController();
                 newLightConfiguration.getActuator().setActive(false);
 
                 dataCollector.changeDefaultSettingsZone(zoneIdentifier, newLightConfiguration);
-//            sendNewZoneConfigurationToAllLightController(mqttClient, zoneIdentifier, dataCollector);
+                sendNewZoneConfigurationToAllLightController(mqttClient, zoneIdentifier, dataCollector);
 
                 Thread.sleep(5000);
-                logger.info("Sending new configuration to irrigation!");
                 IrrigationController newIrrigationConfiguration = new IrrigationController();
                 newIrrigationConfiguration.getActuator().setActive(true);
                 newIrrigationConfiguration.getActivationPolicy().setTimeSchedule("5 4 * * * *");
@@ -129,13 +127,13 @@ public class DataCollectorEmulator {
                     MqttConfigurationParameters.PRESENTATION_TOPIC);
 
             if (mqttClient.isConnected()) {
-//            FIXME: evitabile il thread?
                 logger.info("Subscribed to topic: (" + topicToSubscribe + ")");
                 mqttClient.subscribe(topicToSubscribe, SubscriptionQoS, (topic, msg) -> new Thread(() -> {
                     byte[] payload = msg.getPayload();
                     String sensorType = getNthParamTopic(topic, MqttConfigurationParameters.SENSOR_TOPIC_INDEX);
                     SmartObjectBase smartObjectBase = gson.fromJson(new String(msg.getPayload()), SmartObjectBase.class);
 
+                    // FIXME: mettere la zona dinamica, ora sempre questa fissa
                     switch (sensorType) {
                         case MqttConfigurationParameters.SM_OBJECT_LIGHT_TOPIC -> dataCollector.addSmartObjectToZone(zoneIdentifier, gson.fromJson(new String(msg.getPayload()), LightController.class));
                         case MqttConfigurationParameters.SM_OBJECT_IRRIGATION_TOPIC -> dataCollector.addSmartObjectToZone(zoneIdentifier, gson.fromJson(new String(msg.getPayload()), IrrigationController.class));
@@ -222,37 +220,40 @@ public class DataCollectorEmulator {
                             }
 
                             // POST parsing
-                            if (deviceId != null && batteryLevel != null) {
-                                Optional<EnvironmentalSensor> device = dataCollector.getZoneSettings(zoneIdentifier).getSmartObjectById(deviceId, EnvironmentalSensor.class);
+                            if (deviceId != null) {
+                                int deviceZone = dataCollector.getDeviceZone(deviceId);
+                                Optional<EnvironmentalSensor> device = dataCollector.getZoneSettings(deviceZone).getSmartObjectById(deviceId, EnvironmentalSensor.class);
                                 if (device.isPresent()) {
-                                    device.get().getBattery().setBatteryPercentage(batteryLevel.intValue());
-                                    logDeviceBattery(deviceId, batteryLevel.intValue(), batteryUnit, timestamp.longValue());
+                                    if (batteryLevel != null) {
+                                        device.get().getBattery().setBatteryPercentage(batteryLevel.intValue());
+                                        logDeviceBattery(deviceId, batteryLevel.intValue(), batteryUnit, timestamp.longValue());
+                                    }
                                 } else {
                                     logger.error("Error reading subscribeEnvironmentControllerTelemetryTopic! missing device: " + deviceId);
                                 }
-                            }
 
-                            boolean shouldStopIrrigation = isRaining || isTemperatureUnderThreshold;
-                            boolean currentStatus = dataCollector.getZoneSettings(zoneIdentifier).getIrrigationControllerConfiguration().getActuator().isActive();
-                            // invio la nuova configurazione solo se cambia da quella precedente
+                                boolean shouldStopIrrigation = isRaining || isTemperatureUnderThreshold;
+                                boolean currentStatus = dataCollector.getZoneSettings(deviceZone).getIrrigationControllerConfiguration().getActuator().isActive();
+                                // invio la nuova configurazione solo se cambia da quella precedente
 
-                            if (shouldStopIrrigation) {
-                                if (currentStatus) {
-                                    logger.info("Detected environmental change -> isRaining: {}, isTemperatureUnderThreshold: {}, currentIrrigationStatus: {}",
-                                            isRaining,
-                                            isTemperatureUnderThreshold,
-                                            currentStatus
-                                    );
-                                    setActivationIrrigationByZone(mqttClient, zoneIdentifier, false, dataCollector);
-                                }
-                            } else {
-                                if (!currentStatus) {
-                                    logger.info("Detected environmental change -> isRaining: {}, isTemperatureUnderThreshold: {}, currentIrrigationStatus: {}",
-                                            isRaining,
-                                            isTemperatureUnderThreshold,
-                                            currentStatus
-                                    );
-                                    setActivationIrrigationByZone(mqttClient, zoneIdentifier, true, dataCollector);
+                                if (shouldStopIrrigation) {
+                                    if (currentStatus) {
+                                        logger.info("Detected environmental change -> isRaining: {}, isTemperatureUnderThreshold: {}, currentIrrigationStatus: {}",
+                                                isRaining,
+                                                isTemperatureUnderThreshold,
+                                                currentStatus
+                                        );
+                                        setActivationIrrigationByZone(mqttClient, deviceZone, false, dataCollector);
+                                    }
+                                } else {
+                                    if (!currentStatus) {
+                                        logger.info("Detected environmental change -> isRaining: {}, isTemperatureUnderThreshold: {}, currentIrrigationStatus: {}",
+                                                isRaining,
+                                                isTemperatureUnderThreshold,
+                                                currentStatus
+                                        );
+                                        setActivationIrrigationByZone(mqttClient, deviceZone, true, dataCollector);
+                                    }
                                 }
                             }
                         }
@@ -316,11 +317,14 @@ public class DataCollectorEmulator {
                                 if (time != null) timestamp = time;
                             }
 
-                            if (deviceId != null && batteryLevel != null) {
-                                Optional<IrrigationController> device = dataCollector.getZoneSettings(zoneIdentifier).getSmartObjectById(deviceId, IrrigationController.class);
+                            if (deviceId != null) {
+                                int deviceZone = dataCollector.getDeviceZone(deviceId);
+                                Optional<IrrigationController> device = dataCollector.getZoneSettings(deviceZone).getSmartObjectById(deviceId, IrrigationController.class);
                                 if (device.isPresent()) {
-                                    device.get().getBattery().setBatteryPercentage(batteryLevel.intValue());
-                                    logDeviceBattery(deviceId, batteryLevel.intValue(), batteryUnit, timestamp.longValue());
+                                    if (batteryLevel != null) {
+                                        device.get().getBattery().setBatteryPercentage(batteryLevel.intValue());
+                                        logDeviceBattery(deviceId, batteryLevel.intValue(), batteryUnit, timestamp.longValue());
+                                    }
                                 } else {
                                     logger.error("Error reading subscribeIrrigationControllerTelemetryTopic! missing device: " + deviceId);
                                 }
