@@ -56,7 +56,7 @@ public class DataCollectorEmulator {
             // Default irrigationController: Esempio di configurazione custom
             IrrigationController defaultIrrigationConfiguration = new IrrigationController();
             defaultIrrigationConfiguration.getActuator().setActive(true);
-            defaultIrrigationConfiguration.getActivationPolicy().setTimePolicy("16 * 1 * * *");
+            defaultIrrigationConfiguration.getActivationPolicy().setTimeSchedule("16 * 1 * * *");
             defaultIrrigationConfiguration.getActivationPolicy().setDurationMinute(1);
             defaultIrrigationConfiguration.setIrrigationLevel("medium");
             defaultIrrigationConfiguration.setRotate(false);
@@ -78,7 +78,7 @@ public class DataCollectorEmulator {
             logger.info("Sending new configuration to irrigation!");
             IrrigationController newIrrigationConfiguration = new IrrigationController();
             newIrrigationConfiguration.getActuator().setActive(true);
-            newIrrigationConfiguration.getActivationPolicy().setTimePolicy("5 4 * * * *");
+            newIrrigationConfiguration.getActivationPolicy().setTimeSchedule("5 4 * * * *");
             newIrrigationConfiguration.getActivationPolicy().setDurationMinute(1);
             newIrrigationConfiguration.setIrrigationLevel("low");
             newIrrigationConfiguration.setRotate(true);
