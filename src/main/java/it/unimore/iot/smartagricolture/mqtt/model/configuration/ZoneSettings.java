@@ -46,7 +46,10 @@ public class ZoneSettings {
     }
 
     public void addSmartObject(SmartObjectBase smartObject) {
-        this.smartObjects.add(smartObject);
+        Optional<SmartObjectBase> device = getSmartObjectById(smartObject.getId());
+        if (device.isEmpty()) {
+            this.smartObjects.add(smartObject);
+        }
     }
 
 //    public <T> SmartObjectBase getSmartObjectsByType(T classType) {
@@ -57,5 +60,9 @@ public class ZoneSettings {
 
     public Optional<SmartObjectBase> getSmartObjectById(String deviceId) {
         return this.smartObjects.stream().filter(smartObjectBase -> smartObjectBase.getId().equals(deviceId)).findFirst();
+    }
+
+    public <T extends SmartObjectBase> Optional<T> getSmartObjectById(String deviceId, Class<T> type) {
+        return Optional.of(type.cast(this.smartObjects.stream().filter(smartObjectBase -> smartObjectBase.getId().equals(deviceId)).findFirst().get()));
     }
 }
