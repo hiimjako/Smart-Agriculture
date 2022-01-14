@@ -24,7 +24,7 @@ public class EnvironmentalMonitoringEmulator {
         try {
 
             EnvironmentalSensor environmentalSensor = new EnvironmentalSensor();
-            environmentalSensor.setId("test-env-1234");
+//            environmentalSensor.setId("test-env-1234");
             environmentalSensor.getBattery().setBatteryPercentage(100);
 
             MqttClientPersistence persistence = new MemoryPersistence();

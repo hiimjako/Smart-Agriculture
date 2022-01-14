@@ -19,7 +19,7 @@ public class LightControllerEmulator {
             LightController lightController = new LightController();
             lightController.getActuator().setActive(true);
             // TODO: to remove
-            lightController.setId("test-1234");
+//            lightController.setId("test-light-1234");
 
             MqttClientPersistence persistence = new MemoryPersistence();
             IMqttClient mqttClient = new MqttClient(
@@ -44,7 +44,7 @@ public class LightControllerEmulator {
 
             for (int i = 0; i < 1000000; i++) {
                 logger.info("   LIGHT STATUS: active -> " + lightController.getActuator().isActive());
-                Thread.sleep(1000);
+                Thread.sleep(2000);
             }
 
             mqttClient.disconnect();

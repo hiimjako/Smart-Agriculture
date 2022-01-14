@@ -23,7 +23,7 @@ public class IrrigationControllerEmulator {
         try {
             IrrigationController irrigationController = new IrrigationController();
             // TODO: to remove
-            irrigationController.setId("test-irrigation-1234");
+//            irrigationController.setId("test-irrigation-1234");
             irrigationController.getBattery().setBatteryPercentage(100);
 
             // Simulation of running
