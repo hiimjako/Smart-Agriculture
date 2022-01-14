@@ -62,9 +62,11 @@ public class DataCollectorEmulator {
 
             // Default irrigationController: Esempio di configurazione custom
             IrrigationController defaultIrrigationConfiguration = new IrrigationController();
-            defaultIrrigationConfiguration.getActuator().setActive(true);
-            defaultIrrigationConfiguration.getActivationPolicy().setTimeSchedule("* 33 * * * *");
-            defaultIrrigationConfiguration.getActivationPolicy().setDurationMinute(1);
+            defaultIrrigationConfiguration.getActuator().setActive(false);
+            defaultIrrigationConfiguration.getActivationPolicy().setTimeSchedule("01 * * * * *");
+            // Test per interruzione prima della fine
+//            defaultIrrigationConfiguration.getActivationPolicy().setDurationHour(1);
+            defaultIrrigationConfiguration.getActivationPolicy().setDurationSecond(20);
             defaultIrrigationConfiguration.setIrrigationLevel("medium");
             defaultIrrigationConfiguration.setRotate(false);
             dataCollector.changeDefaultSettingsZone(zoneIdentifier, defaultIrrigationConfiguration);
@@ -140,7 +142,10 @@ public class DataCollectorEmulator {
                         case MqttConfigurationParameters.SM_OBJECT_ENVIRONMENTAL_TOPIC -> dataCollector.addSmartObjectToZone(zoneIdentifier, gson.fromJson(new String(msg.getPayload()), EnvironmentalSensor.class));
                     }
 
-                    sendNewZoneConfiguration(mqttClient, zoneIdentifier, smartObjectBase.getId(), dataCollector);
+                    if (!msg.isRetained()) {
+                        sendNewZoneConfiguration(mqttClient, zoneIdentifier, smartObjectBase.getId(), dataCollector);
+                    }
+
                     logger.info("subscribePresentationTopic -> Message Received (" + topic + ") Message Received: " + new String(payload));
                 }).start());
             } else {

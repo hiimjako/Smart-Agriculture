@@ -111,7 +111,7 @@ public class IrrigationController extends SmartObjectBase implements Runnable, I
                 if (!currentPolicy.equals(this.getActivationPolicy().getTimeSchedule())) {
                     currentPolicy = this.getActivationPolicy().getTimeSchedule();
                     nextRun = this.getActivationPolicy().getNextDateToActivate();
-                    System.out.println("    " + this.getId() + " new policy read");
+                    System.out.println("    [" + new Date() + "] " + this.getId() + " new policy read, next activation at " + nextRun);
                 }
 
                 if (this.getActuator().isActive()) {
@@ -122,25 +122,29 @@ public class IrrigationController extends SmartObjectBase implements Runnable, I
                             this.getActivationPolicy().setLastRunStart();
                             isIrrigating = true;
 
-                            System.out.println("    " + this.getId() + " irrigating!");
+                            System.out.println("    [" + new Date() + "] " + this.getId() + " irrigating!");
                         }
                     } else {
                         //still irrigating
                         if (this.getActivationPolicy().hasToStop()) {
                             isIrrigating = false;
-                            System.out.println("    " + this.getId() + " current schedule finished, next in " + this.getActivationPolicy().getNextDateToActivate());
+                            System.out.println("    [" + new Date() + "] " + this.getId() + " current schedule finished, next at " + this.getActivationPolicy().getNextDateToActivate());
                         }
                     }
                 } else {
                     if (isIrrigating) {
                         isIrrigating = false;
-                        System.out.println("    " + this.getId() + " stopped before end of schedule, probably it's raining or low temperature");
+                        System.out.println("    [" + new Date() + "] " + this.getId() + " stopped before end of schedule, probably it's raining or low temperature");
                     } else {
-                        System.out.println("    " + this.getId() + " it will skip this run (active false), probably it's raining or low temperature");
+                        if (nextRun.before(new Date())) {
+                            nextRun = this.getActivationPolicy().getNextDateToActivate();
+                            this.getActivationPolicy().setLastRunStart();
+                            System.out.println("    [" + new Date() + "] " + this.getId() + " it will skip this run (active false), probably it's raining or low temperature");
+                        }
                     }
                 }
 
-                Thread.sleep(5000);
+                Thread.sleep(1000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

@@ -15,15 +15,18 @@ public class Time {
     private String timeSchedule = "0 0 0 1 1 0"; //"sec min hour day(month) month day(week)";
     private int durationHour = 0;
     private int durationMinute = 0;
+    private int durationSecond = 0;
+
     private long lastRunStart;
 
+    public static final long SECOND = 1000; // in milli-seconds.
     public static final long MINUTE = 60 * 1000; // in milli-seconds.
     public static final long HOUR = 3600 * 1000; // in milli-seconds.
 
     public Time() {
     }
 
-    public Time(String timeSchedule, int durationHour, int durationMinute) {
+    public Time(String timeSchedule, int durationHour, int durationMinute, int durationSecond) {
         if (!CronSequenceGenerator.isValidExpression(timeSchedule))
             throw new IllegalArgumentException(String.format("Cron expression must consist of 6 fields (found %d in \"%s\")",
                     timeSchedule.split(" ").length, timeSchedule));
@@ -31,6 +34,7 @@ public class Time {
         this.timeSchedule = timeSchedule;
         this.durationHour = durationHour;
         this.durationMinute = durationMinute;
+        this.durationSecond = durationSecond;
     }
 
     public String getTimeSchedule() {
@@ -57,6 +61,14 @@ public class Time {
         this.durationMinute = durationMinute;
     }
 
+    public int getDurationSecond() {
+        return durationSecond;
+    }
+
+    public void setDurationSecond(int durationSecond) {
+        this.durationSecond = durationSecond;
+    }
+
     public long getLastRunStart() {
         return lastRunStart;
     }
@@ -74,19 +86,22 @@ public class Time {
         return generator.next(new Date());
     }
 
-    public boolean hasToStop() {
-        long previousRun = this.getLastRunStart();
-        previousRun += (long) this.durationHour * HOUR;
-        previousRun += (long) this.durationMinute * MINUTE;
+    public long dateWhenFinishRun() {
+        long run = this.getLastRunStart();
+        run += (long) this.durationHour * HOUR;
+        run += (long) this.durationMinute * MINUTE;
+        run += (long) this.durationSecond * SECOND;
 
+        return run;
+    }
+
+    public boolean hasToStop() {
+        long previousRun = this.dateWhenFinishRun();
         return new Date().after(new Date(previousRun));
     }
 
     public long milliSecondsUntilEnd() {
-        long previousRun = this.getLastRunStart();
-        previousRun += (long) this.durationHour * HOUR;
-        previousRun += (long) this.durationMinute * MINUTE;
-
+        long previousRun = this.dateWhenFinishRun();
         return previousRun - new Date().getTime();
     }
 

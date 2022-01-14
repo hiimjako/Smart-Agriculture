@@ -16,16 +16,16 @@ import static it.unimore.iot.smartagricolture.mqtt.utils.SenMLParser.toSenMLJson
 public class EnvironmentalMonitoringEmulator {
     private static final int BATTERY_DRAIN = 2;
     private static final int BATTERY_DRAIN_TICK_PERIOD = 1000;
-    private static final int BATTERY_PERCENTAGE_TO_TRIGGER_RAIN = 50;
+    private static final int BATTERY_PERCENTAGE_TO_TRIGGER_RAIN = 35;
     private final static Logger logger = LoggerFactory.getLogger(EnvironmentalMonitoringEmulator.class);
-    private static Gson gson = new Gson();
+    private static final Gson gson = new Gson();
 
     public static void main(String[] args) {
         try {
 
             EnvironmentalSensor environmentalSensor = new EnvironmentalSensor();
             environmentalSensor.setId("test-env-1234");
-            environmentalSensor.getBattery().setBatteryPercentage(80);
+            environmentalSensor.getBattery().setBatteryPercentage(100);
 
             MqttClientPersistence persistence = new MemoryPersistence();
             IMqttClient mqttClient = new MqttClient(
@@ -46,13 +46,16 @@ public class EnvironmentalMonitoringEmulator {
 
             publishDeviceInfo(mqttClient, environmentalSensor);
 
+            boolean hasSentNewConfiguration = false;
+
             environmentalSensor.getRainSensor().setValue(false);
             while (environmentalSensor.getBattery().getBatteryPercentage() > 0) {
                 environmentalSensor.getBattery().decreaseBatteryLevelBy(BATTERY_DRAIN);
                 // evento per provare quando rileva pioggia
-                if (environmentalSensor.getBattery().getBatteryPercentage() < BATTERY_PERCENTAGE_TO_TRIGGER_RAIN) {
+                if (environmentalSensor.getBattery().getBatteryPercentage() < BATTERY_PERCENTAGE_TO_TRIGGER_RAIN && !hasSentNewConfiguration) {
                     logger.info("Simulating raining detection");
                     environmentalSensor.getRainSensor().setValue(true);
+                    hasSentNewConfiguration = true;
                 }
                 publishDeviceTelemetry(mqttClient, environmentalSensor);
                 Thread.sleep(BATTERY_DRAIN_TICK_PERIOD);
