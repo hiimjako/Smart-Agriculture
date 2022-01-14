@@ -8,6 +8,7 @@ public class Time {
     private String timeSchedule = ""; //"* * * * * *";
     private int durationHour = 0;
     private int durationMinute = 0;
+    private long lastRun;
 
     public static final long MINUTE = 60 * 1000; // in milli-seconds.
     public static final long HOUR = 3600 * 1000; // in milli-seconds.
@@ -25,11 +26,11 @@ public class Time {
         this.durationMinute = durationMinute;
     }
 
-    public String getTimePolicy() {
+    public String getTimeSchedule() {
         return timeSchedule;
     }
 
-    public void setTimePolicy(String timeSchedule) {
+    public void setTimeSchedule(String timeSchedule) {
         this.timeSchedule = timeSchedule;
     }
 
@@ -49,17 +50,26 @@ public class Time {
         this.durationMinute = durationMinute;
     }
 
+    public long getLastRun() {
+        return lastRun;
+    }
+
+    public void setLastRun(long lastRun) {
+        this.lastRun = lastRun;
+    }
+
     public Date getNextDateToActivate() {
         CronSequenceGenerator generator = new CronSequenceGenerator(this.timeSchedule);
         return generator.next(new Date());
     }
 
-    public boolean hasToFinish() {
-        long nextDate = this.getNextDateToActivate().getTime();
+    public boolean hasToStop() {
+        long previousRun = this.getLastRun();
+        previousRun += (long) this.durationHour * HOUR;
+        previousRun += (long) this.durationMinute * MINUTE;
+
         long now = new Date().getTime();
-        now += (long) this.durationHour * HOUR;
-        now += (long) this.durationMinute * MINUTE;
-        return now < nextDate;
+        return now < previousRun;
     }
 
     @Override
