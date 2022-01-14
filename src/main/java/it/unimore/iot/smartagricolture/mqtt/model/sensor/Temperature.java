@@ -1,5 +1,7 @@
 package it.unimore.iot.smartagricolture.mqtt.model.sensor;
 
+import it.unimore.iot.smartagricolture.mqtt.conf.MqttConfigurationParameters;
+
 /**
  * @author Alberto Moretti, 272804@studenti.unimore.it
  * @version 1.0.0
@@ -8,7 +10,6 @@ package it.unimore.iot.smartagricolture.mqtt.model.sensor;
  */
 public class Temperature {
     private double value;
-    public static final int TEMPERATURE_THRESHOLD = 20;
 
     public static final String SENML_NAME = "temperature";
     public static final String SENML_UNIT = "Cel";
@@ -30,8 +31,13 @@ public class Temperature {
     }
 
     public boolean isUnderTemperature() {
-        return this.value >= TEMPERATURE_THRESHOLD;
+        return this.value >= MqttConfigurationParameters.THRESHOLD_TEMPERATURE_CEL;
     }
+
+    public static boolean isUnderTemperature(int value) {
+        return value >= MqttConfigurationParameters.THRESHOLD_TEMPERATURE_CEL;
+    }
+
 
     @Override
     public String toString() {
