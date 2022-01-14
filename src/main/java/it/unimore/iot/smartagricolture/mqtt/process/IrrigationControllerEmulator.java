@@ -3,13 +3,18 @@ package it.unimore.iot.smartagricolture.mqtt.process;
 import com.google.gson.Gson;
 import it.unimore.iot.smartagricolture.mqtt.conf.MqttConfigurationParameters;
 import it.unimore.iot.smartagricolture.mqtt.model.IrrigationController;
+import it.unimore.iot.smartagricolture.mqtt.utils.SenMLPack;
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Optional;
+
+import static it.unimore.iot.smartagricolture.mqtt.utils.SenMLParser.toSenMLJson;
+
 public class IrrigationControllerEmulator {
-    private static final int MESSAGE_COUNT = 1000;
+    private static final int BATTERY_DRAIN = 2;
     private final static Logger logger = LoggerFactory.getLogger(IrrigationControllerEmulator.class);
     private static Gson gson = new Gson();
 
@@ -18,6 +23,7 @@ public class IrrigationControllerEmulator {
             IrrigationController irrigationController = new IrrigationController();
             // TODO: to remove
             irrigationController.setId("test-irrigation-1234");
+            irrigationController.getBattery().setBatteryPercentage(26);
 
             MqttClientPersistence persistence = new MemoryPersistence();
             IMqttClient mqttClient = new MqttClient(
@@ -43,11 +49,18 @@ public class IrrigationControllerEmulator {
             Thread thread = new Thread(irrigationController);
             thread.start();
 
-            for (int i = 0; i < 1000000; i++) {
-                logger.info("   IRRIGATION STATUS: " + irrigationController);
+//            for (int i = 0; i < 1000000; i++) {
+//                logger.info("   IRRIGATION STATUS: " + irrigationController);
+//                Thread.sleep(1000);
+//            }
+
+            while (irrigationController.getBattery().getBatteryPercentage() > 0) {
+                irrigationController.getBattery().decreaseBatteryLevelBy(BATTERY_DRAIN);
+                publishDeviceTelemetry(mqttClient, irrigationController);
                 Thread.sleep(1000);
             }
 
+            thread.stop();
             mqttClient.disconnect();
             mqttClient.close();
             System.out.println(" Disconnected !");
@@ -76,6 +89,39 @@ public class IrrigationControllerEmulator {
                 MqttMessage msg = new MqttMessage(payloadString.getBytes());
                 msg.setQos(0);
                 msg.setRetained(true);
+                mqttClient.publish(topic, msg);
+
+                logger.info("Device Data Correctly Published! Topic: " + topic + " Payload:" + payloadString);
+            } else {
+                logger.error("Error: Topic or Msg = Null or MQTT Client is not Connected!");
+            }
+        } catch (Exception e) {
+            logger.error("Error Publishing LightController Information! Error : " + e.getLocalizedMessage());
+        }
+    }
+
+    /**
+     * Send the sensor sensors values Payload to the specified MQTT topic in SenML format
+     *
+     * @param mqttClient           The mqtt client
+     * @param irrigationDescriptor Instance of IrrigationController, to get ids and battery status
+     */
+    public static void publishDeviceTelemetry(IMqttClient mqttClient, IrrigationController irrigationDescriptor) {
+        try {
+            String topic = String.format("%s/%s/%s/%s",
+                    MqttConfigurationParameters.MQTT_BASIC_TOPIC,
+                    MqttConfigurationParameters.SM_OBJECT_IRRIGATION_TOPIC,
+                    irrigationDescriptor.getId(),
+                    MqttConfigurationParameters.TELEMETRY_TOPIC);
+
+            SenMLPack senml = irrigationDescriptor.toSenML(irrigationDescriptor);
+            Optional<String> payload = toSenMLJson(senml);
+
+            if (mqttClient.isConnected() && payload.isPresent() && topic != null) {
+                String payloadString = payload.get();
+                MqttMessage msg = new MqttMessage(payloadString.getBytes());
+                msg.setQos(0);
+                msg.setRetained(false);
                 mqttClient.publish(topic, msg);
 
                 logger.info("Device Data Correctly Published! Topic: " + topic + " Payload:" + payloadString);
@@ -121,20 +167,6 @@ public class IrrigationControllerEmulator {
             }
         } catch (Exception e) {
             logger.error("Error subscribing to configuration topic! Error : " + e.getLocalizedMessage());
-        }
-    }
-
-    /**
-     * Parse MQTT messages into a boolean object or null in case of error
-     *
-     * @param payload The message payload to parse
-     * @return the parsed boolean object or null in case or error.
-     */
-    public static Boolean parseBooleanJsonMessage(byte[] payload) {
-        try {
-            return (Boolean) gson.fromJson(new String(payload), boolean.class);
-        } catch (Exception e) {
-            return null;
         }
     }
 }

@@ -4,6 +4,9 @@ import com.google.gson.Gson;
 import it.unimore.iot.smartagricolture.mqtt.conf.MqttConfigurationParameters;
 import it.unimore.iot.smartagricolture.mqtt.model.*;
 import it.unimore.iot.smartagricolture.mqtt.model.configuration.ZoneSettings;
+import it.unimore.iot.smartagricolture.mqtt.model.sensor.Battery;
+import it.unimore.iot.smartagricolture.mqtt.utils.SenMLPack;
+import it.unimore.iot.smartagricolture.mqtt.utils.SenMLRecord;
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.jetbrains.annotations.NotNull;
@@ -11,13 +14,16 @@ import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Date;
 import java.util.Optional;
 
+import static it.unimore.iot.smartagricolture.mqtt.utils.SenMLParser.parseSenMLJson;
 import static it.unimore.iot.smartagricolture.mqtt.utils.utils.getNthParamTopic;
 
 public class DataCollectorEmulator {
 
     private final static Logger logger = LoggerFactory.getLogger(DataCollectorEmulator.class);
+    private static final boolean sendNewConfigurationDemo = false;
     private static final Gson gson = new Gson();
     private static final int zoneIdentifier = 1;
 
@@ -63,28 +69,32 @@ public class DataCollectorEmulator {
             dataCollector.changeDefaultSettingsZone(zoneIdentifier, defaultIrrigationConfiguration);
 
             subscribePresentationTopic(mqttClient, dataCollector);
-            subscribeEnvironmentControllerTopic(mqttClient);
+            subscribeIrrigationControllerTelemetryTopic(mqttClient, dataCollector);
+//            subscribeEnvironmentControllerTopic(mqttClient);
 
-            // simulazione di cambio configurazione dopo 10 secondi
-            Thread.sleep(5000);
-            logger.info("Sending new configuration to lights!");
-            LightController newLightConfiguration = new LightController();
-            newLightConfiguration.getActuator().setActive(false);
+            if (sendNewConfigurationDemo) {
+                // simulazione di cambio configurazione dopo 10 secondi
+                Thread.sleep(5000);
+                logger.info("Sending new configuration to lights!");
+                LightController newLightConfiguration = new LightController();
+                newLightConfiguration.getActuator().setActive(false);
 
-            dataCollector.changeDefaultSettingsZone(zoneIdentifier, newLightConfiguration);
+                dataCollector.changeDefaultSettingsZone(zoneIdentifier, newLightConfiguration);
 //            sendNewZoneConfigurationToAllLightController(mqttClient, zoneIdentifier, dataCollector);
 
-            Thread.sleep(5000);
-            logger.info("Sending new configuration to irrigation!");
-            IrrigationController newIrrigationConfiguration = new IrrigationController();
-            newIrrigationConfiguration.getActuator().setActive(true);
-            newIrrigationConfiguration.getActivationPolicy().setTimeSchedule("5 4 * * * *");
-            newIrrigationConfiguration.getActivationPolicy().setDurationMinute(1);
-            newIrrigationConfiguration.setIrrigationLevel("low");
-            newIrrigationConfiguration.setRotate(true);
+                Thread.sleep(5000);
+                logger.info("Sending new configuration to irrigation!");
+                IrrigationController newIrrigationConfiguration = new IrrigationController();
+                newIrrigationConfiguration.getActuator().setActive(true);
+                newIrrigationConfiguration.getActivationPolicy().setTimeSchedule("5 4 * * * *");
+                newIrrigationConfiguration.getActivationPolicy().setDurationMinute(1);
+                newIrrigationConfiguration.setIrrigationLevel("low");
+                newIrrigationConfiguration.setRotate(true);
 
-            dataCollector.changeDefaultSettingsZone(zoneIdentifier, newIrrigationConfiguration);
-            sendNewZoneConfigurationToAllIrrigationController(mqttClient, zoneIdentifier, dataCollector);
+                dataCollector.changeDefaultSettingsZone(zoneIdentifier, newIrrigationConfiguration);
+                sendNewZoneConfigurationToAllIrrigationController(mqttClient, zoneIdentifier, dataCollector);
+            }
+
 
 //            mqttClient.disconnect();
 //            mqttClient.close();
@@ -95,7 +105,7 @@ public class DataCollectorEmulator {
         }
     }
 
-    // TOPICS CALLBACKS
+    // TOPICS SUBSCRIPTIONS CALLBACKS
 
     /**
      * Function that monitor the topics for smartObject presentation
@@ -115,22 +125,18 @@ public class DataCollectorEmulator {
 //            FIXME: evitabile il thread?
                 logger.info("Subscribed to topic: (" + topicToSubscribe + ")");
                 mqttClient.subscribe(topicToSubscribe, SubscriptionQoS, (topic, msg) -> new Thread(() -> {
-                    try {
-                        byte[] payload = msg.getPayload();
-                        String sensorType = getNthParamTopic(topic, MqttConfigurationParameters.SENSOR_TOPIC_INDEX);
-                        SmartObjectBase smartObjectBase = gson.fromJson(new String(msg.getPayload()), SmartObjectBase.class);
+                    byte[] payload = msg.getPayload();
+                    String sensorType = getNthParamTopic(topic, MqttConfigurationParameters.SENSOR_TOPIC_INDEX);
+                    SmartObjectBase smartObjectBase = gson.fromJson(new String(msg.getPayload()), SmartObjectBase.class);
 
-                        switch (sensorType) {
-                            case MqttConfigurationParameters.SM_OBJECT_LIGHT_TOPIC -> dataCollector.addSmartObjectToZone(zoneIdentifier, gson.fromJson(new String(msg.getPayload()), LightController.class));
-                            case MqttConfigurationParameters.SM_OBJECT_IRRIGATION_TOPIC -> dataCollector.addSmartObjectToZone(zoneIdentifier, gson.fromJson(new String(msg.getPayload()), IrrigationController.class));
-                            case MqttConfigurationParameters.SM_OBJECT_ENVIRONMENTAL_TOPIC -> dataCollector.addSmartObjectToZone(zoneIdentifier, gson.fromJson(new String(msg.getPayload()), EnvironmentalSensor.class));
-                        }
-
-                        sendNewZoneConfiguration(mqttClient, zoneIdentifier, smartObjectBase.getId(), dataCollector);
-                        logger.info("subscribePresentationTopic -> Message Received (" + topic + ") Message Received: " + new String(payload));
-                    } catch (MqttException e) {
-                        e.printStackTrace();
+                    switch (sensorType) {
+                        case MqttConfigurationParameters.SM_OBJECT_LIGHT_TOPIC -> dataCollector.addSmartObjectToZone(zoneIdentifier, gson.fromJson(new String(msg.getPayload()), LightController.class));
+                        case MqttConfigurationParameters.SM_OBJECT_IRRIGATION_TOPIC -> dataCollector.addSmartObjectToZone(zoneIdentifier, gson.fromJson(new String(msg.getPayload()), IrrigationController.class));
+                        case MqttConfigurationParameters.SM_OBJECT_ENVIRONMENTAL_TOPIC -> dataCollector.addSmartObjectToZone(zoneIdentifier, gson.fromJson(new String(msg.getPayload()), EnvironmentalSensor.class));
                     }
+
+                    // sendNewZoneConfiguration(mqttClient, zoneIdentifier, smartObjectBase.getId(), dataCollector);
+                    logger.info("subscribePresentationTopic -> Message Received (" + topic + ") Message Received: " + new String(payload));
                 }).start());
             } else {
                 logger.error("Mqtt client not connected");
@@ -147,13 +153,14 @@ public class DataCollectorEmulator {
      */
     public static void subscribeEnvironmentControllerTopic(@NotNull IMqttClient mqttClient) throws MqttException {
         int SubscriptionQoS = 1;
-        String topicSubscribeEnvTelemetry = String.format("%s/%s/+/%s/+/%s",
+        String topicToSubscribe = String.format("%s/%s/+/%s/+/%s",
                 MqttConfigurationParameters.MQTT_BASIC_TOPIC,
                 MqttConfigurationParameters.ZONE_TOPIC,
                 MqttConfigurationParameters.SM_OBJECT_ENVIRONMENTAL_TOPIC,
                 MqttConfigurationParameters.TELEMETRY_TOPIC);
         if (mqttClient.isConnected()) {
-            mqttClient.subscribe(topicSubscribeEnvTelemetry, (topic, msg) -> {
+            logger.info("Subscribed to topic: (" + topicToSubscribe + ")");
+            mqttClient.subscribe(topicToSubscribe, (topic, msg) -> {
                 byte[] payload = msg.getPayload();
                 EnvironmentalSensor environmentalSensor = parseEnvironmentalSensorJsonMessage(payload);
 
@@ -171,7 +178,87 @@ public class DataCollectorEmulator {
         }
     }
 
-    //  MESSAGES
+    /**
+     * Function that monitor the topics related with environmentController class
+     *
+     * @param mqttClient    The mqtt client
+     * @param dataCollector The data collector object that manages the zones and controllers
+     */
+    public static void subscribeIrrigationControllerTelemetryTopic(@NotNull IMqttClient mqttClient, DataCollector dataCollector) {
+        try {
+            int SubscriptionQoS = 0;
+            String topicToSubscribe = String.format("%s/%s/+/%s",
+                    MqttConfigurationParameters.MQTT_BASIC_TOPIC,
+                    MqttConfigurationParameters.SM_OBJECT_IRRIGATION_TOPIC,
+                    MqttConfigurationParameters.TELEMETRY_TOPIC);
+
+            if (mqttClient.isConnected()) {
+                logger.info("Subscribed to topic: (" + topicToSubscribe + ")");
+                mqttClient.subscribe(topicToSubscribe, SubscriptionQoS, (topic, msg) -> {
+                    try {
+                        byte[] payload = msg.getPayload();
+                        String payloadString = new String(payload);
+//                        logger.info("Message received (" + topic + ") Message Received: " + payloadString);
+
+                        Optional<SenMLPack> parsedPayload = parseSenMLJson(payloadString);
+
+                        if (parsedPayload.isPresent()) {
+                            SenMLPack senMLPack = parsedPayload.get();
+
+                            String deviceId = null;
+                            Number batteryLevel = null;
+                            String batteryUnit = null;
+                            Number timestamp = new Date().getTime();
+                            for (SenMLRecord record : senMLPack) {
+                                String baseName = record.getBn();
+                                String name = record.getN();
+                                Number value = record.getV();
+                                String unit = record.getU();
+                                Number time = record.getBt();
+
+                                if (baseName != null) deviceId = baseName;
+                                if (name != null && value != null) {
+                                    if (name.equals(Battery.SENML_NAME)) {
+                                        batteryLevel = value;
+                                    }
+                                    if (unit != null) batteryUnit = unit;
+                                }
+                                if (time != null) timestamp = time;
+                            }
+
+                            if (deviceId != null) {
+                                Optional<IrrigationController> device = dataCollector.getZoneSettings(zoneIdentifier).getSmartObjectById(deviceId, IrrigationController.class);
+                                if (device.isEmpty()) {
+                                    logger.error("Error reading subscribeIrrigationControllerTelemetryTopic! missing device: " + deviceId);
+                                } else {
+                                    if (batteryLevel != null) {
+                                        device.get().getBattery().setBatteryPercentage(batteryLevel.intValue());
+                                        if (batteryLevel.intValue() <= MqttConfigurationParameters.THRESHOLD_BATTERY_PERCENTAGE) {
+                                            logger.warn("[%s] %s: battery level: %d %s, under threshold: %d".formatted(
+                                                    new Date(timestamp.longValue()).toString(),
+                                                    deviceId,
+                                                    batteryLevel.intValue(),
+                                                    batteryUnit,
+                                                    MqttConfigurationParameters.THRESHOLD_BATTERY_PERCENTAGE));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } catch (Exception e) {
+                        logger.error("Error reading subscribeIrrigationControllerTelemetryTopic! Error : " + e.getLocalizedMessage());
+                    }
+                });
+            } else {
+                logger.error("Mqtt client not connected");
+            }
+        } catch (Exception e) {
+            logger.error("Error subscribing to configuration topic! Error : " + e.getLocalizedMessage());
+        }
+    }
+
+
+    // TOPICS MESSAGE SENDERS CALLBACKS
 
     /**
      * Function that sends the new configuration to all clients
@@ -323,13 +410,6 @@ public class DataCollectorEmulator {
         }
     }
 
-    private static void sendPayload(@NotNull IMqttClient mqttClient, String topic, String payload) throws MqttException {
-        sendPayload(mqttClient, topic, payload, 0, false);
-    }
-
-    private static void sendPayload(@NotNull IMqttClient mqttClient, String topic, String payload, int messageQoS) throws MqttException {
-        sendPayload(mqttClient, topic, payload, messageQoS, false);
-    }
 
     /**
      * Wrapper for sending a message, only for intelliJ warnings
@@ -350,5 +430,13 @@ public class DataCollectorEmulator {
         } else {
             logger.error("Error: Topic or Msg = Null or MQTT Client is not Connected!");
         }
+    }
+
+    private static void sendPayload(@NotNull IMqttClient mqttClient, String topic, String payload) throws MqttException {
+        sendPayload(mqttClient, topic, payload, 0, false);
+    }
+
+    private static void sendPayload(@NotNull IMqttClient mqttClient, String topic, String payload, int messageQoS) throws MqttException {
+        sendPayload(mqttClient, topic, payload, messageQoS, false);
     }
 }
