@@ -15,6 +15,7 @@ import static it.unimore.iot.smartagricolture.mqtt.utils.SenMLParser.toSenMLJson
 
 public class IrrigationControllerEmulator {
     private static final int BATTERY_DRAIN = 2;
+    private static final int BATTERY_DRAIN_TICK_PERIOD = 1000;
     private final static Logger logger = LoggerFactory.getLogger(IrrigationControllerEmulator.class);
     private static Gson gson = new Gson();
 
@@ -57,7 +58,7 @@ public class IrrigationControllerEmulator {
             while (irrigationController.getBattery().getBatteryPercentage() > 0) {
                 irrigationController.getBattery().decreaseBatteryLevelBy(BATTERY_DRAIN);
                 publishDeviceTelemetry(mqttClient, irrigationController);
-                Thread.sleep(1000);
+                Thread.sleep(BATTERY_DRAIN_TICK_PERIOD);
             }
 
             thread.stop();
