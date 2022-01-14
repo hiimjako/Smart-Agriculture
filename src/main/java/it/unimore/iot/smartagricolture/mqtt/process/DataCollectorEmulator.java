@@ -63,7 +63,7 @@ public class DataCollectorEmulator {
             // Default irrigationController: Esempio di configurazione custom
             IrrigationController defaultIrrigationConfiguration = new IrrigationController();
             defaultIrrigationConfiguration.getActuator().setActive(true);
-            defaultIrrigationConfiguration.getActivationPolicy().setTimeSchedule("16 * 1 * * *");
+            defaultIrrigationConfiguration.getActivationPolicy().setTimeSchedule("* 33 * * * *");
             defaultIrrigationConfiguration.getActivationPolicy().setDurationMinute(1);
             defaultIrrigationConfiguration.setIrrigationLevel("medium");
             defaultIrrigationConfiguration.setRotate(false);
@@ -73,6 +73,9 @@ public class DataCollectorEmulator {
             subscribePresentationTopic(mqttClient, dataCollector);
             subscribeIrrigationControllerTelemetryTopic(mqttClient, dataCollector);
             subscribeEnvironmentControllerTelemetryTopic(mqttClient, dataCollector);
+
+            // Send as retained the default configurations
+            sendNewZoneConfigurationToAllSmartObjects(mqttClient, zoneIdentifier, dataCollector);
 
             if (sendNewConfigurationDemo) {
                 // simulazione di cambio configurazione dopo 10 secondi
@@ -137,7 +140,7 @@ public class DataCollectorEmulator {
                         case MqttConfigurationParameters.SM_OBJECT_ENVIRONMENTAL_TOPIC -> dataCollector.addSmartObjectToZone(zoneIdentifier, gson.fromJson(new String(msg.getPayload()), EnvironmentalSensor.class));
                     }
 
-                    // sendNewZoneConfiguration(mqttClient, zoneIdentifier, smartObjectBase.getId(), dataCollector);
+                    sendNewZoneConfiguration(mqttClient, zoneIdentifier, smartObjectBase.getId(), dataCollector);
                     logger.info("subscribePresentationTopic -> Message Received (" + topic + ") Message Received: " + new String(payload));
                 }).start());
             } else {
@@ -387,7 +390,7 @@ public class DataCollectorEmulator {
      * @param zoneId        The zone where publish the configuration
      * @param dataCollector The data collector object that manages the zones and controllers
      */
-    public static void sendNewZoneConfigurationToAll(@NotNull IMqttClient mqttClient, int zoneId, DataCollector dataCollector) {
+    public static void sendNewZoneConfigurationToAllSmartObjects(@NotNull IMqttClient mqttClient, int zoneId, DataCollector dataCollector) {
         ZoneSettings zoneSettings = dataCollector.getZoneSettings(zoneId);
         if (zoneSettings != null) {
             logger.info("Sending new configuration for all actuators!");
@@ -528,7 +531,7 @@ public class DataCollectorEmulator {
             msg.setQos(messageQoS);
             msg.setRetained(retained);
             mqttClient.publish(topic, msg);
-            logger.info("Payload sent -> Topic : {} Payload: {}", topic, payload);
+            logger.info("Payload sent -> Topic : {} Payload: {}, retained: {}", topic, payload, retained);
         } else {
             logger.error("Error: Topic or Msg = Null or MQTT Client is not Connected!");
         }
