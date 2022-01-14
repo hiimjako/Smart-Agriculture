@@ -78,6 +78,7 @@ public class Time {
                 "timeSchedule='" + timeSchedule + '\'' +
                 ", durationHour=" + durationHour +
                 ", durationMinute=" + durationMinute +
+                ", lastRun=" + lastRun +
                 '}';
     }
 }
