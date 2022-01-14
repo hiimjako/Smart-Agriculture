@@ -6,6 +6,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * @author Alberto Moretti, 272804@studenti.unimore.it
+ * @version 1.0.0
+ * @project smart-agriculture
+ * @created 14/01/2022 - 13:11
+ */
 public class DataCollector {
     private final String id = UUID.randomUUID().toString();
     private final Map<Number, ZoneSettings> zonesSettings = new HashMap<>();
