@@ -39,6 +39,9 @@ public class IrrigationControllerEmulator {
             publishDeviceInfo(mqttClient, irrigationController);
             subscribeConfigurationTopic(mqttClient, irrigationController);
 
+            // Simulation of running
+            Thread thread = new Thread(irrigationController);
+            thread.start();
 
             for (int i = 0; i < 1000000; i++) {
                 logger.info("   IRRIGATION STATUS: " + irrigationController);

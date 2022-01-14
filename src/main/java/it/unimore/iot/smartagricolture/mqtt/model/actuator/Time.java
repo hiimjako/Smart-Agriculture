@@ -8,7 +8,7 @@ public class Time {
     private String timeSchedule = ""; //"* * * * * *";
     private int durationHour = 0;
     private int durationMinute = 0;
-    private long lastRun;
+    private long lastRunStart;
 
     public static final long MINUTE = 60 * 1000; // in milli-seconds.
     public static final long HOUR = 3600 * 1000; // in milli-seconds.
@@ -50,12 +50,16 @@ public class Time {
         this.durationMinute = durationMinute;
     }
 
-    public long getLastRun() {
-        return lastRun;
+    public long getLastRunStart() {
+        return lastRunStart;
     }
 
-    public void setLastRun(long lastRun) {
-        this.lastRun = lastRun;
+    public void setLastRunStart() {
+        this.lastRunStart = new Date().getTime();
+    }
+
+    public void setLastRunStart(long lastRunStart) {
+        this.lastRunStart = lastRunStart;
     }
 
     public Date getNextDateToActivate() {
@@ -64,13 +68,21 @@ public class Time {
     }
 
     public boolean hasToStop() {
-        long previousRun = this.getLastRun();
+        long previousRun = this.getLastRunStart();
         previousRun += (long) this.durationHour * HOUR;
         previousRun += (long) this.durationMinute * MINUTE;
 
-        long now = new Date().getTime();
-        return now < previousRun;
+        return new Date().after(new Date(previousRun));
     }
+
+    public long milliSecondsUntilEnd() {
+        long previousRun = this.getLastRunStart();
+        previousRun += (long) this.durationHour * HOUR;
+        previousRun += (long) this.durationMinute * MINUTE;
+
+        return previousRun - new Date().getTime();
+    }
+
 
     @Override
     public String toString() {
@@ -78,7 +90,7 @@ public class Time {
                 "timeSchedule='" + timeSchedule + '\'' +
                 ", durationHour=" + durationHour +
                 ", durationMinute=" + durationMinute +
-                ", lastRun=" + lastRun +
+                ", lastRun=" + lastRunStart +
                 '}';
     }
 }

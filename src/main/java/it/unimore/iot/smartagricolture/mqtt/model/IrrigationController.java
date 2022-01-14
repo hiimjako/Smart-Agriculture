@@ -5,6 +5,7 @@ import it.unimore.iot.smartagricolture.mqtt.model.actuator.Time;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 
 /**
  * @author Alberto Moretti, 272804@studenti.unimore.it
@@ -12,7 +13,7 @@ import java.util.Arrays;
  * @project smart-agriculture
  * @created 02/01/2022 - 16:18
  */
-public class IrrigationController extends SmartObjectBase {
+public class IrrigationController extends SmartObjectBase implements Runnable {
     private final BooleanActuator actuator = new BooleanActuator();
     private String irrigationLevel = "medium";
     private Time activationPolicy = new Time();
@@ -73,5 +74,40 @@ public class IrrigationController extends SmartObjectBase {
                 ", activationPolicy=" + activationPolicy +
                 ", rotate=" + rotate +
                 '}';
+    }
+
+    @Override
+    public void run() {
+        Date nextRun = this.getActivationPolicy().getNextDateToActivate();
+        String currentPolicy = this.getActivationPolicy().getTimeSchedule();
+        while (true) {
+            try {
+                // in case of new policy
+                if (!currentPolicy.equals(this.getActivationPolicy().getTimeSchedule())) {
+                    nextRun = this.getActivationPolicy().getNextDateToActivate();
+                    currentPolicy = this.getActivationPolicy().getTimeSchedule();
+                    System.out.println(this.getId() + " new policy read");
+                }
+
+                if (this.getActuator().isActive()) {
+                    //deve runnare
+                    if (this.getActivationPolicy().getNextDateToActivate().after(nextRun)) {
+                        nextRun = this.getActivationPolicy().getNextDateToActivate();
+                        this.getActivationPolicy().setLastRunStart();
+
+                        while (!this.getActivationPolicy().hasToStop()) {
+                            System.out.println(this.getId() + " irrigating!");
+                            Thread.sleep(this.getActivationPolicy().milliSecondsUntilEnd());
+                        }
+                    }
+                } else {
+                    System.out.println(this.getId() + " it will skip this run, probably it's raining");
+                }
+
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

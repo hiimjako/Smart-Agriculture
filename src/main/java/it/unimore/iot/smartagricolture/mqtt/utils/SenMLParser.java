@@ -1,10 +1,7 @@
 package it.unimore.iot.smartagricolture.mqtt.utils;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 
-import java.lang.reflect.InvocationTargetException;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -42,13 +39,4 @@ public class SenMLParser {
             return Optional.empty();
         }
     }
-
-    // TODO: make general parseSenML like gson
-    public static <T> T parseSenML(SenMLPack senMLPack, Class<T> type) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        ObjectMapper oMapper = new ObjectMapper();
-        T object = type.getDeclaredConstructor().newInstance();
-        Map<String, Object> map = oMapper.convertValue(object, Map.class);
-        return null;
-    }
-
 }
