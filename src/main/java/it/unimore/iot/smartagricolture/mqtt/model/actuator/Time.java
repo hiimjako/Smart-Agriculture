@@ -5,7 +5,8 @@ import org.springframework.scheduling.support.CronSequenceGenerator;
 import java.util.Date;
 
 public class Time {
-    private String timeSchedule = ""; //"* * * * * *";
+    // default al primo giorno dell'anno
+    private String timeSchedule = "0 0 0 1 1 0"; //"sec min hour day(month) month day(week)";
     private int durationHour = 0;
     private int durationMinute = 0;
     private long lastRunStart;

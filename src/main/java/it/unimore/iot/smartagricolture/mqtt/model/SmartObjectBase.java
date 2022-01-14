@@ -10,6 +10,7 @@ import java.util.UUID;
  */
 public class SmartObjectBase {
     private String id = UUID.randomUUID().toString();
+    public static final String SENML_ID = "id";
 
     public SmartObjectBase() {
     }
