@@ -23,24 +23,21 @@ public class MqttConfigurationParameters {
     public static String MQTT_PASSWORD = dotenv.get("MQTT_PASSWORD");
 
     // Mqtt topic
-    public static final String MQTT_BASIC_TOPIC = "/iot/agriculture/device";
+    public static final String MQTT_BASIC_TOPIC = dotenv.get("MQTT_PASSWORD", "/iot/agriculture/device");
 
     //  sensors
-    public static final int SENSOR_TOPIC_INDEX = 4;
-    public static final String ZONE_TOPIC = "zone";
-    public static final String SM_OBJECT_LIGHT_TOPIC = "light";
-    public static final String SM_OBJECT_IRRIGATION_TOPIC = "irrigation";
-    public static final String SM_OBJECT_ENVIRONMENTAL_TOPIC = "environmental";
+    public static final int SENSOR_TOPIC_INDEX = Integer.parseInt(dotenv.get("SENSOR_TOPIC_INDEX", "4"));
+    public static final String SM_OBJECT_LIGHT_TOPIC = dotenv.get("SM_OBJECT_LIGHT_TOPIC", "light");
+    public static final String SM_OBJECT_IRRIGATION_TOPIC = dotenv.get("SM_OBJECT_IRRIGATION_TOPIC", "irrigation");
+    public static final String SM_OBJECT_ENVIRONMENTAL_TOPIC = dotenv.get("SM_OBJECT_ENVIRONMENTAL_TOPIC", "environmental");
 
     // params
-    public static final String PRESENTATION_TOPIC = "info";
-    public static final String CONFIGURATION_TOPIC = "setting";
-    public static final String TELEMETRY_TOPIC = "telemetry";
-    public static final String BATTERY_PERCENTAGE_TOPIC = "battery";
-    public static final String ACTUATOR_STATUS_TOPIC = "active";
+    public static final String PRESENTATION_TOPIC = dotenv.get("PRESENTATION_TOPIC", "info");
+    public static final String CONFIGURATION_TOPIC = dotenv.get("CONFIGURATION_TOPIC", "setting");
+    public static final String TELEMETRY_TOPIC = dotenv.get("TELEMETRY_TOPIC", "telemetry");
 
     // constants
-    public static final int THRESHOLD_BATTERY_PERCENTAGE = 20;
-    public static final int THRESHOLD_TEMPERATURE_CEL = 10;
+    public static final int THRESHOLD_BATTERY_PERCENTAGE = Integer.parseInt(dotenv.get("THRESHOLD_BATTERY_PERCENTAGE", "20"));
+    public static final int THRESHOLD_TEMPERATURE_CEL = Integer.parseInt(dotenv.get("THRESHOLD_TEMPERATURE_CEL", "10"));
 
 }
