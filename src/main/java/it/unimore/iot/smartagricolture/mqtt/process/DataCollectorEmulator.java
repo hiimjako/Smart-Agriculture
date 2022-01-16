@@ -131,13 +131,17 @@ public class DataCollectorEmulator {
                     byte[] payload = msg.getPayload();
                     String sensorType = getNthParamTopic(topic, MqttConfigurationParameters.SENSOR_TOPIC_INDEX);
                     SmartObjectBase smartObjectBase = gson.fromJson(new String(msg.getPayload()), SmartObjectBase.class);
+                    String payloadString = new String(msg.getPayload());
 
                     // FIXME: mettere la zona dinamica, ora sempre questa fissa
-                    switch (sensorType) {
-                        case MqttConfigurationParameters.SM_OBJECT_LIGHT_TOPIC -> dataCollector.addSmartObjectToZone(zoneIdentifier, gson.fromJson(new String(msg.getPayload()), LightController.class));
-                        case MqttConfigurationParameters.SM_OBJECT_IRRIGATION_TOPIC -> dataCollector.addSmartObjectToZone(zoneIdentifier, gson.fromJson(new String(msg.getPayload()), IrrigationController.class));
-                        case MqttConfigurationParameters.SM_OBJECT_ENVIRONMENTAL_TOPIC -> dataCollector.addSmartObjectToZone(zoneIdentifier, gson.fromJson(new String(msg.getPayload()), EnvironmentalSensor.class));
-                    }
+                    if (sensorType.equals(MqttConfigurationParameters.SM_OBJECT_LIGHT_TOPIC))
+                        dataCollector.addSmartObjectToZone(zoneIdentifier, gson.fromJson(payloadString, LightController.class));
+                    else if (sensorType.equals(MqttConfigurationParameters.SM_OBJECT_IRRIGATION_TOPIC))
+                        dataCollector.addSmartObjectToZone(zoneIdentifier, gson.fromJson(payloadString, IrrigationController.class));
+                    else if (sensorType.equals(MqttConfigurationParameters.SM_OBJECT_ENVIRONMENTAL_TOPIC))
+                        dataCollector.addSmartObjectToZone(zoneIdentifier, gson.fromJson(payloadString, EnvironmentalSensor.class));
+                    else
+                        logger.error("subscribePresentationTopic -> Unable to convert object: {}", payloadString);
 
                     if (!msg.isRetained()) {
                         sendNewZoneConfiguration(mqttClient, zoneIdentifier, smartObjectBase.getId(), dataCollector);
