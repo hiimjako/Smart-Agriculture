@@ -23,7 +23,7 @@ public class MqttConfigurationParameters {
     public static String MQTT_PASSWORD = dotenv.get("MQTT_PASSWORD");
 
     // Mqtt topic
-    public static final String MQTT_BASIC_TOPIC = dotenv.get("MQTT_PASSWORD", "/iot/agriculture/device");
+    public static final String MQTT_BASIC_TOPIC = dotenv.get("MQTT_BASIC_TOPIC", "/iot/agriculture/device");
 
     //  sensors
     public static final int SENSOR_TOPIC_INDEX = Integer.parseInt(dotenv.get("SENSOR_TOPIC_INDEX", "4"));
