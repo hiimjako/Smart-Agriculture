@@ -3,7 +3,6 @@ package it.unimore.iot.smartagricolture.mqtt.process;
 import com.google.gson.Gson;
 import it.unimore.iot.smartagricolture.mqtt.conf.MqttConfigurationParameters;
 import it.unimore.iot.smartagricolture.mqtt.model.*;
-import it.unimore.iot.smartagricolture.mqtt.model.configuration.ZoneSettings;
 import it.unimore.iot.smartagricolture.mqtt.model.sensor.Battery;
 import it.unimore.iot.smartagricolture.mqtt.model.sensor.Rain;
 import it.unimore.iot.smartagricolture.mqtt.model.sensor.Temperature;
@@ -24,7 +23,7 @@ import static it.unimore.iot.smartagricolture.mqtt.utils.utils.getNthParamTopic;
 public class DataCollectorEmulator {
 
     private final static Logger logger = LoggerFactory.getLogger(DataCollectorEmulator.class);
-    private static final boolean sendNewConfigurationDemo = true;
+    private static final boolean sendNewConfigurationDemo = false;
     private static final Gson gson = new Gson();
     private static final int zoneIdentifier = 3;
 

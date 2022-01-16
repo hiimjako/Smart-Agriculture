@@ -1,8 +1,4 @@
-package it.unimore.iot.smartagricolture.mqtt.model.configuration;
-
-import it.unimore.iot.smartagricolture.mqtt.model.IrrigationController;
-import it.unimore.iot.smartagricolture.mqtt.model.LightController;
-import it.unimore.iot.smartagricolture.mqtt.model.SmartObjectBase;
+package it.unimore.iot.smartagricolture.mqtt.model;
 
 import java.util.ArrayList;
 import java.util.Optional;

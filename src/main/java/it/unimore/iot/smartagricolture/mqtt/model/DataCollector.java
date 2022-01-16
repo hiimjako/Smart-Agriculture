@@ -1,7 +1,5 @@
 package it.unimore.iot.smartagricolture.mqtt.model;
 
-import it.unimore.iot.smartagricolture.mqtt.model.configuration.ZoneSettings;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;

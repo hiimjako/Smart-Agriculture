@@ -15,7 +15,7 @@ import static it.unimore.iot.smartagricolture.mqtt.utils.SenMLParser.toSenMLJson
 
 public class IrrigationControllerEmulator {
     private static final int BATTERY_DRAIN = 2;
-    private static final int BATTERY_DRAIN_TICK_PERIOD = 1000;
+    private static final int BATTERY_DRAIN_TICK_PERIOD = 5000;
     private final static Logger logger = LoggerFactory.getLogger(IrrigationControllerEmulator.class);
     private static Gson gson = new Gson();
 
@@ -123,7 +123,6 @@ public class IrrigationControllerEmulator {
                 String payloadString = payload.get();
                 MqttMessage msg = new MqttMessage(payloadString.getBytes());
                 msg.setQos(0);
-                msg.setRetained(false);
                 mqttClient.publish(topic, msg);
 
                 logger.info("Device Data Correctly Published! Topic: " + topic + " Payload:" + payloadString);
