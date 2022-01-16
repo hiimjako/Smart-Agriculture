@@ -2,6 +2,7 @@ package it.unimore.iot.smartagricolture.mqtt.process;
 
 import com.google.gson.Gson;
 import it.unimore.iot.smartagricolture.mqtt.conf.MqttConfigurationParameters;
+import it.unimore.iot.smartagricolture.mqtt.message.IrrigationControllerConfiguration;
 import it.unimore.iot.smartagricolture.mqtt.model.IrrigationController;
 import it.unimore.iot.smartagricolture.mqtt.utils.SenMLPack;
 import org.eclipse.paho.client.mqttv3.*;
@@ -154,7 +155,7 @@ public class IrrigationControllerEmulator {
                 logger.info("Subscribed to topic: (" + topicToSubscribe + ")");
                 mqttClient.subscribe(topicToSubscribe, SubscriptionQoS, (topic, msg) -> {
                     byte[] payload = msg.getPayload();
-                    IrrigationController newConfiguration = gson.fromJson(new String(payload), IrrigationController.class);
+                    IrrigationControllerConfiguration newConfiguration = gson.fromJson(new String(payload), IrrigationControllerConfiguration.class);
                     // TODO: parsing new data, also rotation and level?
 
                     irrigationController.getActuator().setActive(newConfiguration.getActuator().isActive());

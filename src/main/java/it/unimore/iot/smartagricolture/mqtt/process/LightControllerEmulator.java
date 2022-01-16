@@ -2,6 +2,7 @@ package it.unimore.iot.smartagricolture.mqtt.process;
 
 import com.google.gson.Gson;
 import it.unimore.iot.smartagricolture.mqtt.conf.MqttConfigurationParameters;
+import it.unimore.iot.smartagricolture.mqtt.message.LightControllerConfiguration;
 import it.unimore.iot.smartagricolture.mqtt.model.LightController;
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
@@ -107,7 +108,7 @@ public class LightControllerEmulator {
                 logger.info("Subscribed to topic: (" + topicToSubscribe + ")");
                 mqttClient.subscribe(topicToSubscribe, SubscriptionQoS, (topic, msg) -> {
                     byte[] payload = msg.getPayload();
-                    LightController newConfiguration = gson.fromJson(new String(payload), LightController.class);
+                    LightControllerConfiguration newConfiguration = gson.fromJson(new String(payload), LightControllerConfiguration.class);
                     lightController.getActuator().setActive(newConfiguration.getActuator().isActive());
                     logger.info("New configuration received on: (" + topic + ")  with: " + newConfiguration.getActuator());
                 });

@@ -1,5 +1,8 @@
 package it.unimore.iot.smartagricolture.mqtt.model;
 
+import it.unimore.iot.smartagricolture.mqtt.message.IrrigationControllerConfiguration;
+import it.unimore.iot.smartagricolture.mqtt.message.LightControllerConfiguration;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -52,15 +55,21 @@ public class DataCollector {
         }
     }
 
-    public void changeDefaultSettingsZone(int zoneId, SmartObjectBase smartObjectBase) {
+    public void changeDefaultSettingsZone(int zoneId, LightControllerConfiguration configuration) {
         ZoneSettings zoneSettings = this.getZoneSettings(zoneId);
 
         if (zoneSettings != null) {
-            if (smartObjectBase instanceof LightController) {
-                zoneSettings.setLightControllerConfiguration((LightController) smartObjectBase);
-            } else if (smartObjectBase instanceof IrrigationController) {
-                zoneSettings.setIrrigationControllerConfiguration((IrrigationController) smartObjectBase);
-            }
+            zoneSettings.setLightControllerConfiguration(configuration);
+        } else {
+            System.out.println("The zone does not exists!");
+        }
+    }
+
+    public void changeDefaultSettingsZone(int zoneId, IrrigationControllerConfiguration configuration) {
+        ZoneSettings zoneSettings = this.getZoneSettings(zoneId);
+
+        if (zoneSettings != null) {
+            zoneSettings.setIrrigationControllerConfiguration(configuration);
         } else {
             System.out.println("The zone does not exists!");
         }

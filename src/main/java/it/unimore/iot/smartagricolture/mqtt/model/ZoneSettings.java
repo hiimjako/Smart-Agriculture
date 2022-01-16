@@ -1,5 +1,8 @@
 package it.unimore.iot.smartagricolture.mqtt.model;
 
+import it.unimore.iot.smartagricolture.mqtt.message.IrrigationControllerConfiguration;
+import it.unimore.iot.smartagricolture.mqtt.message.LightControllerConfiguration;
+
 import java.util.ArrayList;
 import java.util.Optional;
 
@@ -11,8 +14,8 @@ import java.util.Optional;
  */
 public class ZoneSettings {
     private ArrayList<SmartObjectBase> smartObjects = new ArrayList<>();
-    private LightController lightControllerConfiguration;
-    private IrrigationController irrigationControllerConfiguration;
+    private LightControllerConfiguration lightControllerConfiguration;
+    private IrrigationControllerConfiguration irrigationControllerConfiguration;
 
     public ZoneSettings() {
     }
@@ -25,20 +28,19 @@ public class ZoneSettings {
         this.smartObjects = smartObjects;
     }
 
-
-    public LightController getLightControllerConfiguration() {
+    public LightControllerConfiguration getLightControllerConfiguration() {
         return lightControllerConfiguration;
     }
 
-    public void setLightControllerConfiguration(LightController lightControllerConfiguration) {
+    public void setLightControllerConfiguration(LightControllerConfiguration lightControllerConfiguration) {
         this.lightControllerConfiguration = lightControllerConfiguration;
     }
 
-    public IrrigationController getIrrigationControllerConfiguration() {
+    public IrrigationControllerConfiguration getIrrigationControllerConfiguration() {
         return irrigationControllerConfiguration;
     }
 
-    public void setIrrigationControllerConfiguration(IrrigationController irrigationControllerConfiguration) {
+    public void setIrrigationControllerConfiguration(IrrigationControllerConfiguration irrigationControllerConfiguration) {
         this.irrigationControllerConfiguration = irrigationControllerConfiguration;
     }
 

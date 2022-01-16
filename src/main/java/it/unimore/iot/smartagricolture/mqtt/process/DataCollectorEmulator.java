@@ -2,6 +2,8 @@ package it.unimore.iot.smartagricolture.mqtt.process;
 
 import com.google.gson.Gson;
 import it.unimore.iot.smartagricolture.mqtt.conf.MqttConfigurationParameters;
+import it.unimore.iot.smartagricolture.mqtt.message.IrrigationControllerConfiguration;
+import it.unimore.iot.smartagricolture.mqtt.message.LightControllerConfiguration;
 import it.unimore.iot.smartagricolture.mqtt.model.*;
 import it.unimore.iot.smartagricolture.mqtt.model.sensor.Battery;
 import it.unimore.iot.smartagricolture.mqtt.model.sensor.Rain;
@@ -55,12 +57,12 @@ public class DataCollectorEmulator {
             dataCollector.createZone(zoneIdentifier);
 
             // Default lightController: Esempio di configurazione custom, con le luci attive
-            LightController defaultLightConfiguration = new LightController();
+            LightControllerConfiguration defaultLightConfiguration = new LightControllerConfiguration();
             defaultLightConfiguration.getActuator().setActive(true);
             dataCollector.changeDefaultSettingsZone(zoneIdentifier, defaultLightConfiguration);
 
             // Default irrigationController: Esempio di configurazione custom
-            IrrigationController defaultIrrigationConfiguration = new IrrigationController();
+            IrrigationControllerConfiguration defaultIrrigationConfiguration = new IrrigationControllerConfiguration();
             defaultIrrigationConfiguration.getActuator().setActive(true);
             defaultIrrigationConfiguration.getActivationPolicy().setTimeSchedule("01 * * * * *");
             // Test per interruzione prima della fine
@@ -81,21 +83,17 @@ public class DataCollectorEmulator {
             if (sendNewConfigurationDemo) {
                 // simulazione di cambio configurazione dopo 10 secondi
                 Thread.sleep(5000);
-                LightController newLightConfiguration = new LightController();
-                newLightConfiguration.getActuator().setActive(false);
+                defaultLightConfiguration.getActuator().setActive(false);
 
-                dataCollector.changeDefaultSettingsZone(zoneIdentifier, newLightConfiguration);
+                dataCollector.changeDefaultSettingsZone(zoneIdentifier, defaultLightConfiguration);
                 sendNewZoneConfigurationToAllLightController(mqttClient, zoneIdentifier, dataCollector);
 
                 Thread.sleep(5000);
-                IrrigationController newIrrigationConfiguration = new IrrigationController();
-                newIrrigationConfiguration.getActuator().setActive(true);
-                newIrrigationConfiguration.getActivationPolicy().setTimeSchedule("5 4 * * * *");
-                newIrrigationConfiguration.getActivationPolicy().setDurationMinute(1);
-                newIrrigationConfiguration.setIrrigationLevel("low");
-                newIrrigationConfiguration.setRotate(true);
+                defaultIrrigationConfiguration.getActivationPolicy().setDurationMinute(1);
+                defaultIrrigationConfiguration.setIrrigationLevel("low");
+                defaultIrrigationConfiguration.setRotate(true);
 
-                dataCollector.changeDefaultSettingsZone(zoneIdentifier, newIrrigationConfiguration);
+                dataCollector.changeDefaultSettingsZone(zoneIdentifier, defaultIrrigationConfiguration);
                 sendNewZoneConfigurationToAllIrrigationController(mqttClient, zoneIdentifier, dataCollector);
             }
 
@@ -449,7 +447,7 @@ public class DataCollectorEmulator {
      * @param deviceId                     The device target where publish the configuration
      * @param lightControllerConfiguration The new lightController configuration
      */
-    public static void sendLightControllerConfiguration(@NotNull IMqttClient mqttClient, String deviceId, LightController lightControllerConfiguration) {
+    public static void sendLightControllerConfiguration(@NotNull IMqttClient mqttClient, String deviceId, LightControllerConfiguration lightControllerConfiguration) {
         try {
             int messageQoS = 2;
             boolean retained = true;
@@ -474,7 +472,7 @@ public class DataCollectorEmulator {
      * @param deviceId             The device target where publish the configuration
      * @param irrigationController The new irrigationController configuration
      */
-    public static void sendIrrigationControllerConfiguration(@NotNull IMqttClient mqttClient, String deviceId, IrrigationController irrigationController) {
+    public static void sendIrrigationControllerConfiguration(@NotNull IMqttClient mqttClient, String deviceId, IrrigationControllerConfiguration irrigationController) {
         try {
             int messageQoS = 2;
             boolean retained = true;
