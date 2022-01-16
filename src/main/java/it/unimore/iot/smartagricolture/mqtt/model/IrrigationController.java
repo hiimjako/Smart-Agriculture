@@ -1,7 +1,7 @@
 package it.unimore.iot.smartagricolture.mqtt.model;
 
 import it.unimore.iot.smartagricolture.mqtt.model.actuator.BooleanActuator;
-import it.unimore.iot.smartagricolture.mqtt.model.actuator.Time;
+import it.unimore.iot.smartagricolture.mqtt.model.actuator.Timer;
 import it.unimore.iot.smartagricolture.mqtt.model.interfaces.ISenMLFormat;
 import it.unimore.iot.smartagricolture.mqtt.model.sensor.Battery;
 import it.unimore.iot.smartagricolture.mqtt.utils.SenMLPack;
@@ -20,7 +20,7 @@ import java.util.Date;
 public class IrrigationController extends SmartObjectBase implements Runnable, ISenMLFormat<IrrigationController> {
     private final BooleanActuator actuator = new BooleanActuator();
     private String irrigationLevel = "medium";
-    private Time activationPolicy = new Time();
+    private Timer activationPolicy = new Timer();
     public static final ArrayList<String> ALLOWED_IRRIGATION_LEVELS = new ArrayList<>(Arrays.asList("low", "medium", "high"));
     private boolean rotate = false;
     private Battery battery = new Battery();
@@ -28,11 +28,11 @@ public class IrrigationController extends SmartObjectBase implements Runnable, I
     public IrrigationController() {
     }
 
-    public IrrigationController(Time activationPolicy) {
+    public IrrigationController(Timer activationPolicy) {
         this.activationPolicy = activationPolicy;
     }
 
-    public IrrigationController(Time activationPolicy, String irrigationLevel, boolean rotate) {
+    public IrrigationController(Timer activationPolicy, String irrigationLevel, boolean rotate) {
         this.activationPolicy = activationPolicy;
         this.setIrrigationLevel(irrigationLevel);
         this.rotate = rotate;
@@ -50,11 +50,11 @@ public class IrrigationController extends SmartObjectBase implements Runnable, I
                     String.join(", ", ALLOWED_IRRIGATION_LEVELS)));
     }
 
-    public Time getActivationPolicy() {
+    public Timer getActivationPolicy() {
         return activationPolicy;
     }
 
-    public void setActivationPolicy(Time activationPolicy) {
+    public void setActivationPolicy(Timer activationPolicy) {
         this.activationPolicy = activationPolicy;
     }
 

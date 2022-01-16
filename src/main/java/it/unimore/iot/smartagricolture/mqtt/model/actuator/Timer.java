@@ -10,23 +10,22 @@ import java.util.Date;
  * @project smart-agriculture
  * @created 14/01/2022 - 13:11
  */
-public class Time {
+public class Timer {
     // default al primo giorno dell'anno
     private String timeSchedule = "0 0 0 1 1 0"; //"sec min hour day(month) month day(week)";
     private int durationHour = 0;
     private int durationMinute = 0;
     private int durationSecond = 0;
-
-    private long lastRunStart;
+    private long lastRunStartTimestamp;
 
     public static final long SECOND = 1000; // in milli-seconds.
     public static final long MINUTE = 60 * 1000; // in milli-seconds.
     public static final long HOUR = 3600 * 1000; // in milli-seconds.
 
-    public Time() {
+    public Timer() {
     }
 
-    public Time(String timeSchedule, int durationHour, int durationMinute, int durationSecond) {
+    public Timer(String timeSchedule, int durationHour, int durationMinute, int durationSecond) {
         if (!CronSequenceGenerator.isValidExpression(timeSchedule))
             throw new IllegalArgumentException(String.format("Cron expression must consist of 6 fields (found %d in \"%s\")",
                     timeSchedule.split(" ").length, timeSchedule));
@@ -69,16 +68,16 @@ public class Time {
         this.durationSecond = durationSecond;
     }
 
-    public long getLastRunStart() {
-        return lastRunStart;
+    public long getLastRunStartTimestamp() {
+        return lastRunStartTimestamp;
     }
 
     public void setLastRunStart() {
-        this.lastRunStart = new Date().getTime();
+        this.lastRunStartTimestamp = new Date().getTime();
     }
 
-    public void setLastRunStart(long lastRunStart) {
-        this.lastRunStart = lastRunStart;
+    public void setLastRunStartTimestamp(long lastRunStartTimestamp) {
+        this.lastRunStartTimestamp = lastRunStartTimestamp;
     }
 
     public Date getNextDateToActivate() {
@@ -87,7 +86,7 @@ public class Time {
     }
 
     public long dateWhenFinishRun() {
-        long run = this.getLastRunStart();
+        long run = this.getLastRunStartTimestamp();
         run += (long) this.durationHour * HOUR;
         run += (long) this.durationMinute * MINUTE;
         run += (long) this.durationSecond * SECOND;
@@ -112,7 +111,7 @@ public class Time {
                 "timeSchedule='" + timeSchedule + '\'' +
                 ", durationHour=" + durationHour +
                 ", durationMinute=" + durationMinute +
-                ", lastRun=" + lastRunStart +
+                ", lastRun=" + lastRunStartTimestamp +
                 '}';
     }
 }
