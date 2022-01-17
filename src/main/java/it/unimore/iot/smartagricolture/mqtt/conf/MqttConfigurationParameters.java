@@ -38,6 +38,6 @@ public class MqttConfigurationParameters {
 
     // constants
     public static final int THRESHOLD_BATTERY_PERCENTAGE = Integer.parseInt(dotenv.get("THRESHOLD_BATTERY_PERCENTAGE", "20"));
-    public static final int THRESHOLD_TEMPERATURE_CEL = Integer.parseInt(dotenv.get("THRESHOLD_TEMPERATURE_CEL", "10"));
+    public static final double THRESHOLD_TEMPERATURE_CEL = Double.parseDouble(dotenv.get("THRESHOLD_TEMPERATURE_CEL", "10.0"));
 
 }

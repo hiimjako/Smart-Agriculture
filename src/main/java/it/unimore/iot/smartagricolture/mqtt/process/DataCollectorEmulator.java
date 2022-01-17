@@ -206,7 +206,7 @@ public class DataCollectorEmulator {
                                         }
 
                                         if (name.equals(Temperature.SENML_NAME)) {
-                                            isTemperatureUnderThreshold = Temperature.isUnderTemperature(value.intValue());
+                                            isTemperatureUnderThreshold = Temperature.isUnderTemperature(value.doubleValue());
                                             if (unit != null) temperatureUnit = unit;
                                         }
                                     }

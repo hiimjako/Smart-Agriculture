@@ -24,7 +24,7 @@ public class Temperature extends GenericSensor<Double> {
         return this.getValue() >= MqttConfigurationParameters.THRESHOLD_TEMPERATURE_CEL;
     }
 
-    public static boolean isUnderTemperature(int value) {
+    public static boolean isUnderTemperature(Double value) {
         return value >= MqttConfigurationParameters.THRESHOLD_TEMPERATURE_CEL;
     }
 
