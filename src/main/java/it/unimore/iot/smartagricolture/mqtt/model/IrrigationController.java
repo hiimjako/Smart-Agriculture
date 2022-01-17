@@ -9,7 +9,6 @@ import it.unimore.iot.smartagricolture.mqtt.utils.SenMLRecord;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 
 /**
  * @author Alberto Moretti, 272804@studenti.unimore.it
@@ -17,7 +16,7 @@ import java.util.Date;
  * @project smart-agriculture
  * @created 02/01/2022 - 16:18
  */
-public class IrrigationController extends SmartObjectBase implements Runnable, ISenMLFormat<IrrigationController> {
+public class IrrigationController extends SmartObjectBase implements ISenMLFormat<IrrigationController> {
     private final GenericActuator<Boolean> status = new GenericActuator<>(false);
     private String irrigationLevel = "medium";
     private Timer activationPolicy = new Timer();
@@ -95,56 +94,5 @@ public class IrrigationController extends SmartObjectBase implements Runnable, I
         senMLPack.add(senMLRecord);
 
         return senMLPack;
-    }
-
-    @Override
-    public void run() {
-        Date nextRun = this.getActivationPolicy().getNextDateToActivate();
-        String currentPolicy = this.getActivationPolicy().getTimeSchedule();
-        boolean isIrrigating = false;
-        while (this.battery.getValue() > 0) {
-            try {
-                // in case of new policy
-                if (!currentPolicy.equals(this.getActivationPolicy().getTimeSchedule())) {
-                    currentPolicy = this.getActivationPolicy().getTimeSchedule();
-                    nextRun = this.getActivationPolicy().getNextDateToActivate();
-                    System.out.println("    [" + new Date() + "] " + this.getId() + " new policy read, next activation at " + nextRun);
-                }
-
-                if (this.getStatus().getValue()) {
-                    //deve runnare
-                    if (!isIrrigating) {
-                        if (nextRun.before(new Date())) {
-                            nextRun = this.getActivationPolicy().getNextDateToActivate();
-                            this.getActivationPolicy().setLastRunStart();
-                            isIrrigating = true;
-
-                            System.out.println("    [" + new Date() + "] " + this.getId() + " irrigating!");
-                        }
-                    } else {
-                        //still irrigating
-                        if (this.getActivationPolicy().hasToStop()) {
-                            isIrrigating = false;
-                            System.out.println("    [" + new Date() + "] " + this.getId() + " current schedule finished, next at " + this.getActivationPolicy().getNextDateToActivate());
-                        }
-                    }
-                } else {
-                    if (isIrrigating) {
-                        isIrrigating = false;
-                        System.out.println("    [" + new Date() + "] " + this.getId() + " stopped before end of schedule, probably it's raining or low temperature");
-                    } else {
-                        if (nextRun.before(new Date())) {
-                            nextRun = this.getActivationPolicy().getNextDateToActivate();
-                            this.getActivationPolicy().setLastRunStart();
-                            System.out.println("    [" + new Date() + "] " + this.getId() + " it will skip this run (active false), probably it's raining or low temperature");
-                        }
-                    }
-                }
-
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
     }
 }

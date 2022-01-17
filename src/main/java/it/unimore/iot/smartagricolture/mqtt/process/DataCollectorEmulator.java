@@ -25,7 +25,7 @@ import static it.unimore.iot.smartagricolture.mqtt.utils.utils.getNthParamTopic;
 public class DataCollectorEmulator {
 
     private final static Logger logger = LoggerFactory.getLogger(DataCollectorEmulator.class);
-    private static final boolean sendNewConfigurationDemo = false;
+    private static final boolean sendNewConfigurationDemo = true;
     private static final Gson gson = new Gson();
     private static final int zoneIdentifier = 3;
 

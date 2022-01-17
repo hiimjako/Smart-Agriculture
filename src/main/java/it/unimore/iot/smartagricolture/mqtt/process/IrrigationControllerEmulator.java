@@ -175,56 +175,61 @@ public class IrrigationControllerEmulator {
         }
     }
 
+    /**
+     * Function that simulate the irrigation behaviour, in a runnable way to run it into a thread
+     *
+     * @param irrigationController Instance of IrrigationController
+     * @return Runnable
+     */
     @Contract(value = "_ -> new", pure = true)
     public static @NotNull Runnable simulateRunning(IrrigationController irrigationController) {
-        return new Runnable() {
-            public void run() {
-                Date nextRun = irrigationController.getActivationPolicy().getNextDateToActivate();
-                String currentPolicy = irrigationController.getActivationPolicy().getTimeSchedule();
-                boolean isIrrigating = false;
-                while (irrigationController.getBattery().getValue() > 0) {
-                    try {
-                        // in case of new policy
-                        if (!currentPolicy.equals(irrigationController.getActivationPolicy().getTimeSchedule())) {
-                            currentPolicy = irrigationController.getActivationPolicy().getTimeSchedule();
-                            nextRun = irrigationController.getActivationPolicy().getNextDateToActivate();
-                            System.out.println("    [" + new Date() + "] " + irrigationController.getId() + " new policy read, next activation at " + nextRun);
-                        }
+        return () -> {
+            logger.info("Started simulation...");
+            Date nextRun = irrigationController.getActivationPolicy().getNextDateToActivate();
+            String currentPolicy = irrigationController.getActivationPolicy().getTimeSchedule();
+            boolean isIrrigating = false;
+            while (irrigationController.getBattery().getValue() > 0) {
+                try {
+                    // in case of new policy
+                    if (!currentPolicy.equals(irrigationController.getActivationPolicy().getTimeSchedule())) {
+                        currentPolicy = irrigationController.getActivationPolicy().getTimeSchedule();
+                        nextRun = irrigationController.getActivationPolicy().getNextDateToActivate();
+                        logger.info("[" + new Date() + "] " + irrigationController.getId() + " new policy read, next activation at " + nextRun);
+                    }
 
-                        if (irrigationController.getStatus().getValue()) {
-                            //deve runnare
-                            if (!isIrrigating) {
-                                if (nextRun.before(new Date())) {
-                                    nextRun = irrigationController.getActivationPolicy().getNextDateToActivate();
-                                    irrigationController.getActivationPolicy().setLastRunStart();
-                                    isIrrigating = true;
+                    if (irrigationController.getStatus().getValue()) {
+                        //deve runnare
+                        if (!isIrrigating) {
+                            if (nextRun.before(new Date())) {
+                                nextRun = irrigationController.getActivationPolicy().getNextDateToActivate();
+                                irrigationController.getActivationPolicy().setLastRunStart();
+                                isIrrigating = true;
 
-                                    System.out.println("    [" + new Date() + "] " + irrigationController.getId() + " irrigating!");
-                                }
-                            } else {
-                                //still irrigating
-                                if (irrigationController.getActivationPolicy().hasToStop()) {
-                                    isIrrigating = false;
-                                    System.out.println("    [" + new Date() + "] " + irrigationController.getId() + " current schedule finished, next at " + irrigationController.getActivationPolicy().getNextDateToActivate());
-                                }
+                                logger.info("[" + new Date() + "] " + irrigationController.getId() + " irrigating!");
                             }
                         } else {
-                            if (isIrrigating) {
+                            //still irrigating
+                            if (irrigationController.getActivationPolicy().hasToStop()) {
                                 isIrrigating = false;
-                                System.out.println("    [" + new Date() + "] " + irrigationController.getId() + " stopped before end of schedule, probably it's raining or low temperature");
-                            } else {
-                                if (nextRun.before(new Date())) {
-                                    nextRun = irrigationController.getActivationPolicy().getNextDateToActivate();
-                                    irrigationController.getActivationPolicy().setLastRunStart();
-                                    System.out.println("    [" + new Date() + "] " + irrigationController.getId() + " it will skip this run (active false), probably it's raining or low temperature");
-                                }
+                                logger.info("[" + new Date() + "] " + irrigationController.getId() + " current schedule finished, next at " + irrigationController.getActivationPolicy().getNextDateToActivate());
                             }
                         }
-
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                    } else {
+                        if (isIrrigating) {
+                            isIrrigating = false;
+                            logger.info("[" + new Date() + "] " + irrigationController.getId() + " stopped before end of schedule, probably it's raining or low temperature");
+                        } else {
+                            if (nextRun.before(new Date())) {
+                                nextRun = irrigationController.getActivationPolicy().getNextDateToActivate();
+                                irrigationController.getActivationPolicy().setLastRunStart();
+                                logger.info("[" + new Date() + "] " + irrigationController.getId() + " it will skip this run (active false), probably it's raining or low temperature");
+                            }
+                        }
                     }
+
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
             }
         };

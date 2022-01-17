@@ -4,6 +4,7 @@ import it.unimore.iot.smartagricolture.mqtt.message.IrrigationControllerConfigur
 import it.unimore.iot.smartagricolture.mqtt.message.LightControllerConfiguration;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Optional;
 
 /**
@@ -13,7 +14,8 @@ import java.util.Optional;
  * @created 13/01/2022 - 15:07
  */
 public class ZoneSettings {
-    private ArrayList<SmartObjectBase> smartObjects = new ArrayList<>();
+    //    private ArrayList<SmartObjectBase> smartObjects = new ArrayList<>();
+    private final HashMap<String, SmartObjectBase> smartObjects = new HashMap<>();
     private LightControllerConfiguration lightControllerConfiguration;
     private IrrigationControllerConfiguration irrigationControllerConfiguration;
 
@@ -21,12 +23,16 @@ public class ZoneSettings {
     }
 
     public ArrayList<SmartObjectBase> getSmartObjects() {
-        return smartObjects;
+        ArrayList<SmartObjectBase> ret = new ArrayList<>();
+        for (String key : this.smartObjects.keySet()) {
+            ret.add(this.smartObjects.get(key));
+        }
+        return ret;
     }
 
-    public void setSmartObjects(ArrayList<SmartObjectBase> smartObjects) {
-        this.smartObjects = smartObjects;
-    }
+//    public void setSmartObjects(ArrayList<SmartObjectBase> smartObjects) {
+//        this.smartObjects = smartObjects;
+//    }
 
     public LightControllerConfiguration getLightControllerConfiguration() {
         return lightControllerConfiguration;
@@ -47,7 +53,7 @@ public class ZoneSettings {
     public boolean addSmartObject(SmartObjectBase smartObject) {
         Optional<SmartObjectBase> device = getSmartObjectById(smartObject.getId());
         if (device.isEmpty()) {
-            this.smartObjects.add(smartObject);
+            this.smartObjects.put(smartObject.getId(), smartObject);
             return true;
         }
         return false;
@@ -60,10 +66,27 @@ public class ZoneSettings {
 //    }
 
     public Optional<SmartObjectBase> getSmartObjectById(String deviceId) {
-        return this.smartObjects.stream().filter(smartObjectBase -> smartObjectBase.getId().equals(deviceId)).findFirst();
+        SmartObjectBase ret = this.smartObjects.get(deviceId);
+        if (ret == null) return Optional.empty();
+        return Optional.of(this.smartObjects.get(deviceId));
+        // for (SmartObjectBase sm : this.smartObjects) {
+        //     if (sm.getId().equals(deviceId)) return Optional.of(sm);
+        // }
+        // return Optional.empty();
+        // stream version can cause: ConcurrentModificationException
+        // return this.smartObjects.stream().filter(smartObjectBase -> smartObjectBase.getId().equals(deviceId)).findFirst();
     }
 
     public <T extends SmartObjectBase> Optional<T> getSmartObjectById(String deviceId, Class<T> type) {
-        return Optional.of(type.cast(this.smartObjects.stream().filter(smartObjectBase -> smartObjectBase.getId().equals(deviceId)).findFirst().get()));
+        SmartObjectBase ret = this.smartObjects.get(deviceId);
+        if (ret == null) return Optional.empty();
+        return Optional.of(type.cast(this.smartObjects.get(deviceId)));
+
+        // for (SmartObjectBase sm : this.smartObjects) {
+        //    if (sm.getId().equals(deviceId)) return Optional.of(type.cast(sm));
+        //}
+        //return Optional.empty();
+        // stream version can cause: ConcurrentModificationException
+        // return Optional.of(type.cast(this.smartObjects.stream().filter(smartObjectBase -> smartObjectBase.getId().equals(deviceId)).findFirst().get()));
     }
 }
