@@ -25,7 +25,7 @@ public class EnvironmentalMonitoringEmulator {
 
             EnvironmentalSensor environmentalSensor = new EnvironmentalSensor();
 //            environmentalSensor.setId("test-env-1234");
-            environmentalSensor.getBattery().setBatteryPercentage(100);
+            environmentalSensor.getBattery().setValue(100);
 
             MqttClientPersistence persistence = new MemoryPersistence();
             IMqttClient mqttClient = new MqttClient(
@@ -49,10 +49,10 @@ public class EnvironmentalMonitoringEmulator {
             boolean hasSentNewConfiguration = false;
 
             environmentalSensor.getRainSensor().setValue(false);
-            while (environmentalSensor.getBattery().getBatteryPercentage() > 0) {
+            while (environmentalSensor.getBattery().getValue() > 0) {
                 environmentalSensor.getBattery().decreaseBatteryLevelBy(BATTERY_DRAIN);
                 // evento per provare quando rileva pioggia
-                if (environmentalSensor.getBattery().getBatteryPercentage() < BATTERY_PERCENTAGE_TO_TRIGGER_RAIN && !hasSentNewConfiguration) {
+                if (environmentalSensor.getBattery().getValue() < BATTERY_PERCENTAGE_TO_TRIGGER_RAIN && !hasSentNewConfiguration) {
                     logger.info("Simulating raining detection");
                     environmentalSensor.getRainSensor().setValue(true);
                     hasSentNewConfiguration = true;

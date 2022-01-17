@@ -1,6 +1,6 @@
 package it.unimore.iot.smartagricolture.mqtt.model;
 
-import it.unimore.iot.smartagricolture.mqtt.model.actuator.BooleanActuator;
+import it.unimore.iot.smartagricolture.mqtt.model.actuator.GenericActuator;
 import it.unimore.iot.smartagricolture.mqtt.model.actuator.Timer;
 import it.unimore.iot.smartagricolture.mqtt.model.interfaces.ISenMLFormat;
 import it.unimore.iot.smartagricolture.mqtt.model.sensor.Battery;
@@ -18,12 +18,12 @@ import java.util.Date;
  * @created 02/01/2022 - 16:18
  */
 public class IrrigationController extends SmartObjectBase implements Runnable, ISenMLFormat<IrrigationController> {
-    private final BooleanActuator actuator = new BooleanActuator();
+    private final GenericActuator<Boolean> status = new GenericActuator<>(false);
     private String irrigationLevel = "medium";
     private Timer activationPolicy = new Timer();
     public static final ArrayList<String> ALLOWED_IRRIGATION_LEVELS = new ArrayList<>(Arrays.asList("low", "medium", "high"));
     private boolean rotate = false;
-    private Battery battery = new Battery();
+    private final Battery battery = new Battery();
 
     public IrrigationController() {
     }
@@ -66,8 +66,8 @@ public class IrrigationController extends SmartObjectBase implements Runnable, I
         this.rotate = rotate;
     }
 
-    public BooleanActuator getActuator() {
-        return actuator;
+    public GenericActuator<Boolean> getStatus() {
+        return status;
     }
 
     public Battery getBattery() {
@@ -77,7 +77,7 @@ public class IrrigationController extends SmartObjectBase implements Runnable, I
     @Override
     public String toString() {
         return "IrrigationController{" +
-                "actuator=" + actuator +
+                "status=" + status +
                 ", irrigationLevel='" + irrigationLevel + '\'' +
                 ", activationPolicy=" + activationPolicy +
                 ", rotate=" + rotate +
@@ -89,12 +89,9 @@ public class IrrigationController extends SmartObjectBase implements Runnable, I
     public SenMLPack toSenML(IrrigationController object) {
         SenMLPack senMLPack = new SenMLPack();
 
-        SenMLRecord senMLRecord = new SenMLRecord();
+        SenMLRecord senMLRecord = this.battery.getSenMLRecord();
         senMLRecord.setBn(this.getId());
         senMLRecord.setBt(System.currentTimeMillis());
-        senMLRecord.setN(Battery.SENML_NAME);
-        senMLRecord.setU(Battery.SENML_UNIT);
-        senMLRecord.setV(this.battery.getBatteryPercentage());
         senMLPack.add(senMLRecord);
 
         return senMLPack;
@@ -105,7 +102,7 @@ public class IrrigationController extends SmartObjectBase implements Runnable, I
         Date nextRun = this.getActivationPolicy().getNextDateToActivate();
         String currentPolicy = this.getActivationPolicy().getTimeSchedule();
         boolean isIrrigating = false;
-        while (true) {
+        while (this.battery.getValue() > 0) {
             try {
                 // in case of new policy
                 if (!currentPolicy.equals(this.getActivationPolicy().getTimeSchedule())) {
@@ -114,7 +111,7 @@ public class IrrigationController extends SmartObjectBase implements Runnable, I
                     System.out.println("    [" + new Date() + "] " + this.getId() + " new policy read, next activation at " + nextRun);
                 }
 
-                if (this.getActuator().isActive()) {
+                if (this.getStatus().getValue()) {
                     //deve runnare
                     if (!isIrrigating) {
                         if (nextRun.before(new Date())) {

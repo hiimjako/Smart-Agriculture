@@ -66,6 +66,4 @@ public class ZoneSettings {
     public <T extends SmartObjectBase> Optional<T> getSmartObjectById(String deviceId, Class<T> type) {
         return Optional.of(type.cast(this.smartObjects.stream().filter(smartObjectBase -> smartObjectBase.getId().equals(deviceId)).findFirst().get()));
     }
-
-
 }

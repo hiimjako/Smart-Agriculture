@@ -18,7 +18,7 @@ public class LightControllerEmulator {
         try {
 
             LightController lightController = new LightController();
-            lightController.getActuator().setActive(true);
+            lightController.getStatus().setValue(true);
             // TODO: to remove
 //            lightController.setId("test-light-1234");
 
@@ -44,7 +44,7 @@ public class LightControllerEmulator {
 
 
             for (int i = 0; i < 1000000; i++) {
-                logger.info("   LIGHT STATUS: active -> " + lightController.getActuator().isActive());
+                logger.info("   LIGHT STATUS: active -> " + lightController.getStatus().getValue());
                 Thread.sleep(2000);
             }
 
@@ -109,8 +109,8 @@ public class LightControllerEmulator {
                 mqttClient.subscribe(topicToSubscribe, SubscriptionQoS, (topic, msg) -> {
                     byte[] payload = msg.getPayload();
                     LightControllerConfiguration newConfiguration = gson.fromJson(new String(payload), LightControllerConfiguration.class);
-                    lightController.getActuator().setActive(newConfiguration.getActuator().isActive());
-                    logger.info("New configuration received on: (" + topic + ")  with: " + newConfiguration.getActuator());
+                    lightController.getStatus().setValue(newConfiguration.getStatus().getValue());
+                    logger.info("New configuration received on: (" + topic + ")  with: " + newConfiguration.getStatus());
                 });
             } else {
                 logger.error("Mqtt client not connected");

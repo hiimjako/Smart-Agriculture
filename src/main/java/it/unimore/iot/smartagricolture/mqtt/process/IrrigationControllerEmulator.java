@@ -7,9 +7,12 @@ import it.unimore.iot.smartagricolture.mqtt.model.IrrigationController;
 import it.unimore.iot.smartagricolture.mqtt.utils.SenMLPack;
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Date;
 import java.util.Optional;
 
 import static it.unimore.iot.smartagricolture.mqtt.utils.SenMLParser.toSenMLJson;
@@ -25,10 +28,11 @@ public class IrrigationControllerEmulator {
             IrrigationController irrigationController = new IrrigationController();
             // TODO: to remove
 //            irrigationController.setId("test-irrigation-1234");
-            irrigationController.getBattery().setBatteryPercentage(100);
+            irrigationController.getBattery().setValue(96);
 
             // Simulation of running
-            Thread thread = new Thread(irrigationController);
+            Runnable runnable = simulateRunning(irrigationController);
+            Thread thread = new Thread(runnable);
             thread.start();
 
             MqttClientPersistence persistence = new MemoryPersistence();
@@ -57,13 +61,12 @@ public class IrrigationControllerEmulator {
 //                Thread.sleep(1000);
 //            }
 
-            while (irrigationController.getBattery().getBatteryPercentage() > 0) {
+            while (irrigationController.getBattery().getValue() > 0) {
                 irrigationController.getBattery().decreaseBatteryLevelBy(BATTERY_DRAIN);
                 publishDeviceTelemetry(mqttClient, irrigationController);
                 Thread.sleep(BATTERY_DRAIN_TICK_PERIOD);
             }
 
-            thread.stop();
             mqttClient.disconnect();
             mqttClient.close();
             System.out.println(" Disconnected !");
@@ -158,7 +161,7 @@ public class IrrigationControllerEmulator {
                     IrrigationControllerConfiguration newConfiguration = gson.fromJson(new String(payload), IrrigationControllerConfiguration.class);
                     // TODO: parsing new data, also rotation and level?
 
-                    irrigationController.getActuator().setActive(newConfiguration.getActuator().isActive());
+                    irrigationController.getStatus().setValue(newConfiguration.getStatus().getValue());
                     irrigationController.setIrrigationLevel(newConfiguration.getIrrigationLevel());
                     irrigationController.setRotate(newConfiguration.isRotate());
                     irrigationController.setActivationPolicy(newConfiguration.getActivationPolicy());
@@ -170,5 +173,60 @@ public class IrrigationControllerEmulator {
         } catch (Exception e) {
             logger.error("Error subscribing to configuration topic! Error : " + e.getLocalizedMessage());
         }
+    }
+
+    @Contract(value = "_ -> new", pure = true)
+    public static @NotNull Runnable simulateRunning(IrrigationController irrigationController) {
+        return new Runnable() {
+            public void run() {
+                Date nextRun = irrigationController.getActivationPolicy().getNextDateToActivate();
+                String currentPolicy = irrigationController.getActivationPolicy().getTimeSchedule();
+                boolean isIrrigating = false;
+                while (irrigationController.getBattery().getValue() > 0) {
+                    try {
+                        // in case of new policy
+                        if (!currentPolicy.equals(irrigationController.getActivationPolicy().getTimeSchedule())) {
+                            currentPolicy = irrigationController.getActivationPolicy().getTimeSchedule();
+                            nextRun = irrigationController.getActivationPolicy().getNextDateToActivate();
+                            System.out.println("    [" + new Date() + "] " + irrigationController.getId() + " new policy read, next activation at " + nextRun);
+                        }
+
+                        if (irrigationController.getStatus().getValue()) {
+                            //deve runnare
+                            if (!isIrrigating) {
+                                if (nextRun.before(new Date())) {
+                                    nextRun = irrigationController.getActivationPolicy().getNextDateToActivate();
+                                    irrigationController.getActivationPolicy().setLastRunStart();
+                                    isIrrigating = true;
+
+                                    System.out.println("    [" + new Date() + "] " + irrigationController.getId() + " irrigating!");
+                                }
+                            } else {
+                                //still irrigating
+                                if (irrigationController.getActivationPolicy().hasToStop()) {
+                                    isIrrigating = false;
+                                    System.out.println("    [" + new Date() + "] " + irrigationController.getId() + " current schedule finished, next at " + irrigationController.getActivationPolicy().getNextDateToActivate());
+                                }
+                            }
+                        } else {
+                            if (isIrrigating) {
+                                isIrrigating = false;
+                                System.out.println("    [" + new Date() + "] " + irrigationController.getId() + " stopped before end of schedule, probably it's raining or low temperature");
+                            } else {
+                                if (nextRun.before(new Date())) {
+                                    nextRun = irrigationController.getActivationPolicy().getNextDateToActivate();
+                                    irrigationController.getActivationPolicy().setLastRunStart();
+                                    System.out.println("    [" + new Date() + "] " + irrigationController.getId() + " it will skip this run (active false), probably it's raining or low temperature");
+                                }
+                            }
+                        }
+
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        };
     }
 }

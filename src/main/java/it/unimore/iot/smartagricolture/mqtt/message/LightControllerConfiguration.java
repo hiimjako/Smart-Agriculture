@@ -1,6 +1,6 @@
 package it.unimore.iot.smartagricolture.mqtt.message;
 
-import it.unimore.iot.smartagricolture.mqtt.model.actuator.BooleanActuator;
+import it.unimore.iot.smartagricolture.mqtt.model.actuator.GenericActuator;
 
 /**
  * @author Alberto Moretti, 272804@studenti.unimore.it
@@ -9,23 +9,23 @@ import it.unimore.iot.smartagricolture.mqtt.model.actuator.BooleanActuator;
  * @created 16/01/2022 - 16:18
  */
 public class LightControllerConfiguration {
-    private final BooleanActuator actuator = new BooleanActuator();
+    private final GenericActuator<Boolean> status = new GenericActuator<>();
 
     public LightControllerConfiguration() {
     }
 
     public LightControllerConfiguration(boolean active) {
-        this.getActuator().setActive(active);
+        this.getStatus().setValue(active);
     }
 
-    public BooleanActuator getActuator() {
-        return actuator;
+    public GenericActuator<Boolean> getStatus() {
+        return status;
     }
 
     @Override
     public String toString() {
         return "lightControllerSetting{" +
-                "actuator=" + actuator +
+                "actuator=" + status +
                 '}';
     }
 }

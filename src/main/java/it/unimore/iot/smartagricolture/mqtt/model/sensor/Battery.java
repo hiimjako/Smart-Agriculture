@@ -1,6 +1,7 @@
 package it.unimore.iot.smartagricolture.mqtt.model.sensor;
 
 import it.unimore.iot.smartagricolture.mqtt.conf.MqttConfigurationParameters;
+import it.unimore.iot.smartagricolture.mqtt.utils.SenMLRecord;
 
 /**
  * @author Alberto Moretti, 272804@studenti.unimore.it
@@ -8,8 +9,7 @@ import it.unimore.iot.smartagricolture.mqtt.conf.MqttConfigurationParameters;
  * @project smart-agriculture
  * @created 02/01/2022 - 16:18
  */
-public class Battery {
-    private int batteryPercentage;
+public class Battery extends GenericSensor<Integer> {
     public static final int BATTERY_PERCENTAGE_MIN = 0;
     public static final int BATTERY_PERCENTAGE_MAX = 100;
 
@@ -19,51 +19,49 @@ public class Battery {
 
     public Battery() {
         //Only for simulation purposes
-        this.batteryPercentage = BATTERY_PERCENTAGE_MAX;
-//        new Timer().scheduleAtFixedRate(new TimerTask() {
-//            @Override
-//            public void run() {
-//                this.batteryPercentage
-//            }
-//        }, 0, 5000);
+        this.setValue(BATTERY_PERCENTAGE_MAX);
     }
 
     public Battery(int batteryPercentage) {
         //Only for simulation purposes
-        this.setBatteryPercentage(batteryPercentage);
+        this.setValue(batteryPercentage);
     }
 
-    public int getBatteryPercentage() {
-        return batteryPercentage;
-    }
-
-    public void setBatteryPercentage(int batteryPercentage) {
-        //Only for simulation purposes
+    @Override
+    public void setValue(Integer batteryPercentage) {
         if (batteryPercentage <= BATTERY_PERCENTAGE_MIN) {
-            this.batteryPercentage = BATTERY_PERCENTAGE_MIN;
+            super.setValue(BATTERY_PERCENTAGE_MIN);
         } else if (batteryPercentage >= BATTERY_PERCENTAGE_MAX)
-            this.batteryPercentage = BATTERY_PERCENTAGE_MAX;
-        else
-            this.batteryPercentage = batteryPercentage;
+            super.setValue(BATTERY_PERCENTAGE_MAX);
+        else {
+            super.setValue(batteryPercentage);
+        }
     }
 
     public void decreaseBatteryLevelBy(int batteryPercentageToDecrease) {
-        this.setBatteryPercentage(this.batteryPercentage - batteryPercentageToDecrease);
+        this.setValue(this.getValue() - batteryPercentageToDecrease);
     }
 
     public boolean isBatteryUnderThreshold() {
-        return isBatteryUnderThreshold(this.batteryPercentage);
+        return isBatteryUnderThreshold(this.getValue());
     }
 
     public static boolean isBatteryUnderThreshold(int batteryPercentage) {
         return batteryPercentage < MqttConfigurationParameters.THRESHOLD_BATTERY_PERCENTAGE;
     }
 
+    public SenMLRecord getSenMLRecord() {
+        SenMLRecord senMLRecord = new SenMLRecord();
+        senMLRecord.setN(Battery.SENML_NAME);
+        senMLRecord.setU(Battery.SENML_UNIT);
+        senMLRecord.setV(this.getValue());
+        return senMLRecord;
+    }
 
     @Override
     public String toString() {
         return "Battery{" +
-                "batteryPercentage=" + batteryPercentage +
+                "batteryPercentage=" + this.getValue() +
                 '}';
     }
 }

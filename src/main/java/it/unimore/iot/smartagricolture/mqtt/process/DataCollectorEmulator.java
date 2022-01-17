@@ -58,12 +58,12 @@ public class DataCollectorEmulator {
 
             // Default lightController: Esempio di configurazione custom, con le luci attive
             LightControllerConfiguration defaultLightConfiguration = new LightControllerConfiguration();
-            defaultLightConfiguration.getActuator().setActive(true);
+            defaultLightConfiguration.getStatus().setValue(true);
             dataCollector.changeDefaultSettingsZone(zoneIdentifier, defaultLightConfiguration);
 
             // Default irrigationController: Esempio di configurazione custom
             IrrigationControllerConfiguration defaultIrrigationConfiguration = new IrrigationControllerConfiguration();
-            defaultIrrigationConfiguration.getActuator().setActive(true);
+            defaultIrrigationConfiguration.getStatus().setValue(true);
             defaultIrrigationConfiguration.getActivationPolicy().setTimeSchedule("01 * * * * *");
             // Test per interruzione prima della fine
 //            defaultIrrigationConfiguration.getActivationPolicy().setDurationHour(1);
@@ -83,7 +83,7 @@ public class DataCollectorEmulator {
             if (sendNewConfigurationDemo) {
                 // simulazione di cambio configurazione dopo 10 secondi
                 Thread.sleep(5000);
-                defaultLightConfiguration.getActuator().setActive(false);
+                defaultLightConfiguration.getStatus().setValue(false);
 
                 dataCollector.changeDefaultSettingsZone(zoneIdentifier, defaultLightConfiguration);
                 sendNewZoneConfigurationToAllLightController(mqttClient, zoneIdentifier, dataCollector);
@@ -226,7 +226,7 @@ public class DataCollectorEmulator {
                                 Optional<EnvironmentalSensor> device = dataCollector.getZoneSettings(deviceZone).getSmartObjectById(deviceId, EnvironmentalSensor.class);
                                 if (device.isPresent()) {
                                     if (batteryLevel != null) {
-                                        device.get().getBattery().setBatteryPercentage(batteryLevel.intValue());
+                                        device.get().getBattery().setValue(batteryLevel.intValue());
                                         logDeviceBattery(deviceId, batteryLevel.intValue(), batteryUnit, timestamp.longValue());
                                     }
                                 } else {
@@ -234,7 +234,7 @@ public class DataCollectorEmulator {
                                 }
 
                                 boolean shouldStopIrrigation = isRaining || isTemperatureUnderThreshold;
-                                boolean currentStatus = dataCollector.getZoneSettings(deviceZone).getIrrigationControllerConfiguration().getActuator().isActive();
+                                boolean currentStatus = dataCollector.getZoneSettings(deviceZone).getIrrigationControllerConfiguration().getStatus().getValue();
                                 // invio la nuova configurazione solo se cambia da quella precedente
 
                                 if (shouldStopIrrigation) {
@@ -323,7 +323,7 @@ public class DataCollectorEmulator {
                                 Optional<IrrigationController> device = dataCollector.getZoneSettings(deviceZone).getSmartObjectById(deviceId, IrrigationController.class);
                                 if (device.isPresent()) {
                                     if (batteryLevel != null) {
-                                        device.get().getBattery().setBatteryPercentage(batteryLevel.intValue());
+                                        device.get().getBattery().setValue(batteryLevel.intValue());
                                         logDeviceBattery(deviceId, batteryLevel.intValue(), batteryUnit, timestamp.longValue());
                                     }
                                 } else {
@@ -521,7 +521,7 @@ public class DataCollectorEmulator {
      * @param dataCollector The data collector object that manages the zones and controllers
      */
     public static void setActivationIrrigationByZone(@NotNull IMqttClient mqttClient, int zoneId, boolean active, DataCollector dataCollector) {
-        dataCollector.getZoneSettings(zoneId).getIrrigationControllerConfiguration().getActuator().setActive(active);
+        dataCollector.getZoneSettings(zoneId).getIrrigationControllerConfiguration().getStatus().setValue(active);
         sendNewZoneConfigurationToAllIrrigationController(mqttClient, zoneId, dataCollector);
     }
 
