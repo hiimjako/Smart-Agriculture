@@ -82,13 +82,13 @@ public class DataCollectorEmulator {
 
             if (sendNewConfigurationDemo) {
                 // simulazione di cambio configurazione dopo 10 secondi
-                Thread.sleep(5000);
+                Thread.sleep(10000);
                 defaultLightConfiguration.getStatus().setValue(false);
 
                 dataCollector.changeDefaultSettingsZone(zoneIdentifier, defaultLightConfiguration);
                 sendNewZoneConfigurationToAllLightController(mqttClient, zoneIdentifier, dataCollector);
 
-                Thread.sleep(5000);
+                Thread.sleep(10000);
                 defaultIrrigationConfiguration.getActivationPolicy().setDurationMinute(1);
                 defaultIrrigationConfiguration.setIrrigationLevel("low");
                 defaultIrrigationConfiguration.setRotate(true);
@@ -125,7 +125,7 @@ public class DataCollectorEmulator {
 
             if (mqttClient.isConnected()) {
                 logger.info("Subscribed to topic: (" + topicToSubscribe + ")");
-                mqttClient.subscribe(topicToSubscribe, SubscriptionQoS, (topic, msg) -> new Thread(() -> {
+                mqttClient.subscribe(topicToSubscribe, SubscriptionQoS, (topic, msg) -> {
                     byte[] payload = msg.getPayload();
                     String sensorType = getNthParamTopic(topic, MqttConfigurationParameters.SENSOR_TOPIC_INDEX);
                     SmartObjectBase smartObjectBase = gson.fromJson(new String(msg.getPayload()), SmartObjectBase.class);
@@ -146,7 +146,7 @@ public class DataCollectorEmulator {
                     }
 
                     logger.info("subscribePresentationTopic -> Message Received (" + topic + ") Message Received: " + new String(payload));
-                }).start());
+                });
             } else {
                 logger.error("Mqtt client not connected");
             }
