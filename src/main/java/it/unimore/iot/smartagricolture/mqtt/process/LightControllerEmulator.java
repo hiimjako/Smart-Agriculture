@@ -75,7 +75,7 @@ public class LightControllerEmulator {
             String payloadString = gson.toJson(lightDescriptor);
             if (mqttClient.isConnected() && payloadString != null && topic != null) {
                 MqttMessage msg = new MqttMessage(payloadString.getBytes());
-                msg.setQos(0);
+                msg.setQos(1);
                 msg.setRetained(true);
                 mqttClient.publish(topic, msg);
 
@@ -97,7 +97,7 @@ public class LightControllerEmulator {
      */
     public static void subscribeConfigurationTopic(IMqttClient mqttClient, LightController lightController) {
         try {
-            int SubscriptionQoS = 1;
+            int SubscriptionQoS = 2;
             String topicToSubscribe = String.format("%s/%s/%s/%s",
                     MqttConfigurationParameters.MQTT_BASIC_TOPIC,
                     MqttConfigurationParameters.SM_OBJECT_LIGHT_TOPIC,

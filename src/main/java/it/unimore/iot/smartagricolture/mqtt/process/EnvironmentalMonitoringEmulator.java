@@ -90,7 +90,7 @@ public class EnvironmentalMonitoringEmulator {
             String payloadString = gson.toJson(environmentalSensor);
             if (mqttClient.isConnected() && payloadString != null && topic != null) {
                 MqttMessage msg = new MqttMessage(payloadString.getBytes());
-                msg.setQos(0);
+                msg.setQos(1);
                 msg.setRetained(true);
                 mqttClient.publish(topic, msg);
 

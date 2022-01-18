@@ -118,7 +118,7 @@ public class DataCollectorEmulator {
      */
     public static void subscribePresentationTopic(@NotNull IMqttClient mqttClient, DataCollector dataCollector) {
         try {
-            int SubscriptionQoS = 1;
+            int SubscriptionQoS = 2;
             String topicToSubscribe = String.format("%s/+/+/%s",
                     MqttConfigurationParameters.MQTT_BASIC_TOPIC,
                     MqttConfigurationParameters.PRESENTATION_TOPIC);

@@ -93,7 +93,7 @@ public class IrrigationControllerEmulator {
             String payloadString = gson.toJson(irrigationDescriptor);
             if (mqttClient.isConnected() && payloadString != null && topic != null) {
                 MqttMessage msg = new MqttMessage(payloadString.getBytes());
-                msg.setQos(0);
+                msg.setQos(1);
                 msg.setRetained(true);
                 mqttClient.publish(topic, msg);
 
@@ -147,7 +147,7 @@ public class IrrigationControllerEmulator {
      */
     public static void subscribeConfigurationTopic(IMqttClient mqttClient, IrrigationController irrigationController) {
         try {
-            int SubscriptionQoS = 1;
+            int SubscriptionQoS = 2;
             String topicToSubscribe = String.format("%s/%s/%s/%s",
                     MqttConfigurationParameters.MQTT_BASIC_TOPIC,
                     MqttConfigurationParameters.SM_OBJECT_IRRIGATION_TOPIC,
@@ -159,7 +159,6 @@ public class IrrigationControllerEmulator {
                 mqttClient.subscribe(topicToSubscribe, SubscriptionQoS, (topic, msg) -> {
                     byte[] payload = msg.getPayload();
                     IrrigationControllerConfiguration newConfiguration = gson.fromJson(new String(payload), IrrigationControllerConfiguration.class);
-                    // TODO: parsing new data, also rotation and level?
 
                     irrigationController.getStatus().setValue(newConfiguration.getStatus().getValue());
                     irrigationController.setIrrigationLevel(newConfiguration.getIrrigationLevel());
