@@ -193,35 +193,49 @@ public class IrrigationControllerEmulator {
                     if (!currentPolicy.equals(irrigationController.getActivationPolicy().getTimeSchedule())) {
                         currentPolicy = irrigationController.getActivationPolicy().getTimeSchedule();
                         nextRun = irrigationController.getActivationPolicy().getNextDateToActivate();
-                        logger.info("[" + new Date() + "] " + irrigationController.getId() + " new policy read, next activation at " + nextRun);
+                        logger.info("[{}] {} new policy read, next activation at {}",
+                                new Date(),
+                                irrigationController.getId(),
+                                nextRun);
                     }
 
                     if (irrigationController.getStatus().getValue()) {
-                        //deve runnare
+                        // is active
                         if (!isIrrigating) {
+                            // has to start run?
                             if (nextRun.before(new Date())) {
                                 nextRun = irrigationController.getActivationPolicy().getNextDateToActivate();
                                 irrigationController.getActivationPolicy().setLastRunStart();
                                 isIrrigating = true;
 
-                                logger.info("[" + new Date() + "] " + irrigationController.getId() + " irrigating!");
+                                logger.info("[{}] {} irrigating! (ends at {})",
+                                        new Date(),
+                                        irrigationController.getId(),
+                                        new Date(irrigationController.getActivationPolicy().dateWhenFinishRun()));
                             }
                         } else {
                             //still irrigating
                             if (irrigationController.getActivationPolicy().hasToStop()) {
                                 isIrrigating = false;
-                                logger.info("[" + new Date() + "] " + irrigationController.getId() + " current schedule finished, next at " + irrigationController.getActivationPolicy().getNextDateToActivate());
+                                logger.info("[{}] {}  current schedule finished, next one starts at {}",
+                                        new Date(),
+                                        irrigationController.getId(),
+                                        irrigationController.getActivationPolicy().getNextDateToActivate());
                             }
                         }
                     } else {
                         if (isIrrigating) {
                             isIrrigating = false;
-                            logger.info("[" + new Date() + "] " + irrigationController.getId() + " stopped before end of schedule, probably it's raining or low temperature");
+                            logger.info("[{}] {} stopped before end of schedule, probably it's raining or low temperature",
+                                    new Date(),
+                                    irrigationController.getId());
                         } else {
                             if (nextRun.before(new Date())) {
                                 nextRun = irrigationController.getActivationPolicy().getNextDateToActivate();
                                 irrigationController.getActivationPolicy().setLastRunStart();
-                                logger.info("[" + new Date() + "] " + irrigationController.getId() + " it will skip this run (active false), probably it's raining or low temperature");
+                                logger.info("[{}] {} it will skip this run (active false), probably it's raining or low temperature",
+                                        new Date(),
+                                        irrigationController.getId());
                             }
                         }
                     }
