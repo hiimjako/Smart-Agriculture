@@ -55,9 +55,9 @@ public class EnvironmentalMonitoringEmulator {
             while (environmentalSensor.getBattery().getValue() > 0) {
                 environmentalSensor.getBattery().decreaseBatteryLevelBy(BATTERY_DRAIN);
 
-                environmentalSensor.getTemperatureSensor().setValue(rand.nextDouble());
-                environmentalSensor.getHumiditySensor().setValue(rand.nextDouble());
-                environmentalSensor.getBrightnessSensor().setValue(rand.nextDouble());
+                environmentalSensor.getTemperatureSensor().setValue(rand.nextDouble(-10, 30));
+                environmentalSensor.getHumiditySensor().setValue(rand.nextDouble(0, 100));
+                environmentalSensor.getBrightnessSensor().setValue(rand.nextDouble(0, 100));
 
                 publishDeviceTelemetry(mqttClient, environmentalSensor);
                 Thread.sleep(BATTERY_DRAIN_TICK_PERIOD);

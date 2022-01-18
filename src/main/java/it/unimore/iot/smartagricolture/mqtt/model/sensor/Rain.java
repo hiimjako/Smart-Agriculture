@@ -25,6 +25,7 @@ public class Rain extends GenericSensor<Boolean> {
 
     public SenMLRecord getSenMLRecord() {
         SenMLRecord senMLRecord = new SenMLRecord();
+        senMLRecord.setN(SENML_NAME);
         senMLRecord.setVb(this.isRaining());
         return senMLRecord;
     }

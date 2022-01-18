@@ -158,13 +158,14 @@ public class IrrigationControllerEmulator {
                 logger.info("Subscribed to topic: (" + topicToSubscribe + ")");
                 mqttClient.subscribe(topicToSubscribe, SubscriptionQoS, (topic, msg) -> {
                     byte[] payload = msg.getPayload();
-                    IrrigationControllerConfiguration newConfiguration = gson.fromJson(new String(payload), IrrigationControllerConfiguration.class);
+                    String payloadString = new String(payload);
+                    IrrigationControllerConfiguration newConfiguration = gson.fromJson(payloadString, IrrigationControllerConfiguration.class);
 
                     irrigationController.getStatus().setValue(newConfiguration.getStatus().getValue());
                     irrigationController.setIrrigationLevel(newConfiguration.getIrrigationLevel());
                     irrigationController.setRotate(newConfiguration.isRotate());
                     irrigationController.setActivationPolicy(newConfiguration.getActivationPolicy());
-                    logger.info("New configuration received on: (" + topic + ")  with: " + newConfiguration);
+                    logger.info("New configuration received on: (" + topic + ")  with: " + payloadString);
                 });
             } else {
                 logger.error("Mqtt client not connected");
