@@ -10,13 +10,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
+import java.util.Random;
 
 import static it.unimore.iot.smartagricolture.mqtt.utils.SenMLParser.toSenMLJson;
 
 public class EnvironmentalMonitoringEmulator {
     private static final int BATTERY_DRAIN = 2;
-    private static final int BATTERY_DRAIN_TICK_PERIOD = 1000;
-    private static final int BATTERY_PERCENTAGE_TO_TRIGGER_RAIN = 35;
+    private static final int BATTERY_DRAIN_TICK_PERIOD = 3000;
     private final static Logger logger = LoggerFactory.getLogger(EnvironmentalMonitoringEmulator.class);
     private static final Gson gson = new Gson();
 
@@ -25,7 +25,10 @@ public class EnvironmentalMonitoringEmulator {
 
             EnvironmentalSensor environmentalSensor = new EnvironmentalSensor();
 //            environmentalSensor.setId("test-env-1234");
-            environmentalSensor.getBattery().setBatteryPercentage(100);
+            environmentalSensor.getBattery().setValue(100);
+            environmentalSensor.getRainSensor().setValue(false);
+            environmentalSensor.getTemperatureSensor().setValue(MqttConfigurationParameters.THRESHOLD_TEMPERATURE_CEL + 1);
+
 
             MqttClientPersistence persistence = new MemoryPersistence();
             IMqttClient mqttClient = new MqttClient(
@@ -46,17 +49,16 @@ public class EnvironmentalMonitoringEmulator {
 
             publishDeviceInfo(mqttClient, environmentalSensor);
 
-            boolean hasSentNewConfiguration = false;
+            Random rand = new Random();
+            rand.setSeed(System.currentTimeMillis());
 
-            environmentalSensor.getRainSensor().setValue(false);
-            while (environmentalSensor.getBattery().getBatteryPercentage() > 0) {
+            while (environmentalSensor.getBattery().getValue() > 0) {
                 environmentalSensor.getBattery().decreaseBatteryLevelBy(BATTERY_DRAIN);
-                // evento per provare quando rileva pioggia
-                if (environmentalSensor.getBattery().getBatteryPercentage() < BATTERY_PERCENTAGE_TO_TRIGGER_RAIN && !hasSentNewConfiguration) {
-                    logger.info("Simulating raining detection");
-                    environmentalSensor.getRainSensor().setValue(true);
-                    hasSentNewConfiguration = true;
-                }
+
+                environmentalSensor.getTemperatureSensor().setValue(rand.nextDouble(-10, 30));
+                environmentalSensor.getHumiditySensor().setValue(rand.nextDouble(0, 100));
+                environmentalSensor.getBrightnessSensor().setValue(rand.nextDouble(0, 100));
+
                 publishDeviceTelemetry(mqttClient, environmentalSensor);
                 Thread.sleep(BATTERY_DRAIN_TICK_PERIOD);
             }
@@ -88,7 +90,7 @@ public class EnvironmentalMonitoringEmulator {
             String payloadString = gson.toJson(environmentalSensor);
             if (mqttClient.isConnected() && payloadString != null && topic != null) {
                 MqttMessage msg = new MqttMessage(payloadString.getBytes());
-                msg.setQos(0);
+                msg.setQos(1);
                 msg.setRetained(true);
                 mqttClient.publish(topic, msg);
 

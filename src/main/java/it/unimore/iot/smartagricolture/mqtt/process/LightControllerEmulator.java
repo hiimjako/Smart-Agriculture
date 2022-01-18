@@ -18,7 +18,7 @@ public class LightControllerEmulator {
         try {
 
             LightController lightController = new LightController();
-            lightController.getActuator().setActive(true);
+            lightController.getStatus().setValue(true);
             // TODO: to remove
 //            lightController.setId("test-light-1234");
 
@@ -44,7 +44,7 @@ public class LightControllerEmulator {
 
 
             for (int i = 0; i < 1000000; i++) {
-                logger.info("   LIGHT STATUS: active -> " + lightController.getActuator().isActive());
+                logger.info("   LIGHT STATUS: active -> " + lightController.getStatus().getValue());
                 Thread.sleep(2000);
             }
 
@@ -75,7 +75,7 @@ public class LightControllerEmulator {
             String payloadString = gson.toJson(lightDescriptor);
             if (mqttClient.isConnected() && payloadString != null && topic != null) {
                 MqttMessage msg = new MqttMessage(payloadString.getBytes());
-                msg.setQos(0);
+                msg.setQos(1);
                 msg.setRetained(true);
                 mqttClient.publish(topic, msg);
 
@@ -97,7 +97,7 @@ public class LightControllerEmulator {
      */
     public static void subscribeConfigurationTopic(IMqttClient mqttClient, LightController lightController) {
         try {
-            int SubscriptionQoS = 1;
+            int SubscriptionQoS = 2;
             String topicToSubscribe = String.format("%s/%s/%s/%s",
                     MqttConfigurationParameters.MQTT_BASIC_TOPIC,
                     MqttConfigurationParameters.SM_OBJECT_LIGHT_TOPIC,
@@ -108,9 +108,10 @@ public class LightControllerEmulator {
                 logger.info("Subscribed to topic: (" + topicToSubscribe + ")");
                 mqttClient.subscribe(topicToSubscribe, SubscriptionQoS, (topic, msg) -> {
                     byte[] payload = msg.getPayload();
-                    LightControllerConfiguration newConfiguration = gson.fromJson(new String(payload), LightControllerConfiguration.class);
-                    lightController.getActuator().setActive(newConfiguration.getActuator().isActive());
-                    logger.info("New configuration received on: (" + topic + ")  with: " + newConfiguration.getActuator());
+                    String payloadString = new String(payload);
+                    LightControllerConfiguration newConfiguration = gson.fromJson(payloadString, LightControllerConfiguration.class);
+                    lightController.getStatus().setValue(newConfiguration.getStatus().getValue());
+                    logger.info("New configuration received on: (" + topic + ")  with: " + payloadString);
                 });
             } else {
                 logger.error("Mqtt client not connected");

@@ -7,9 +7,12 @@ import it.unimore.iot.smartagricolture.mqtt.model.IrrigationController;
 import it.unimore.iot.smartagricolture.mqtt.utils.SenMLPack;
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Date;
 import java.util.Optional;
 
 import static it.unimore.iot.smartagricolture.mqtt.utils.SenMLParser.toSenMLJson;
@@ -25,10 +28,11 @@ public class IrrigationControllerEmulator {
             IrrigationController irrigationController = new IrrigationController();
             // TODO: to remove
 //            irrigationController.setId("test-irrigation-1234");
-            irrigationController.getBattery().setBatteryPercentage(100);
+            irrigationController.getBattery().setValue(96);
 
             // Simulation of running
-            Thread thread = new Thread(irrigationController);
+            Runnable runnable = simulateRunning(irrigationController);
+            Thread thread = new Thread(runnable);
             thread.start();
 
             MqttClientPersistence persistence = new MemoryPersistence();
@@ -57,13 +61,12 @@ public class IrrigationControllerEmulator {
 //                Thread.sleep(1000);
 //            }
 
-            while (irrigationController.getBattery().getBatteryPercentage() > 0) {
+            while (irrigationController.getBattery().getValue() > 0) {
                 irrigationController.getBattery().decreaseBatteryLevelBy(BATTERY_DRAIN);
                 publishDeviceTelemetry(mqttClient, irrigationController);
                 Thread.sleep(BATTERY_DRAIN_TICK_PERIOD);
             }
 
-            thread.stop();
             mqttClient.disconnect();
             mqttClient.close();
             System.out.println(" Disconnected !");
@@ -90,7 +93,7 @@ public class IrrigationControllerEmulator {
             String payloadString = gson.toJson(irrigationDescriptor);
             if (mqttClient.isConnected() && payloadString != null && topic != null) {
                 MqttMessage msg = new MqttMessage(payloadString.getBytes());
-                msg.setQos(0);
+                msg.setQos(1);
                 msg.setRetained(true);
                 mqttClient.publish(topic, msg);
 
@@ -144,7 +147,7 @@ public class IrrigationControllerEmulator {
      */
     public static void subscribeConfigurationTopic(IMqttClient mqttClient, IrrigationController irrigationController) {
         try {
-            int SubscriptionQoS = 1;
+            int SubscriptionQoS = 2;
             String topicToSubscribe = String.format("%s/%s/%s/%s",
                     MqttConfigurationParameters.MQTT_BASIC_TOPIC,
                     MqttConfigurationParameters.SM_OBJECT_IRRIGATION_TOPIC,
@@ -155,14 +158,14 @@ public class IrrigationControllerEmulator {
                 logger.info("Subscribed to topic: (" + topicToSubscribe + ")");
                 mqttClient.subscribe(topicToSubscribe, SubscriptionQoS, (topic, msg) -> {
                     byte[] payload = msg.getPayload();
-                    IrrigationControllerConfiguration newConfiguration = gson.fromJson(new String(payload), IrrigationControllerConfiguration.class);
-                    // TODO: parsing new data, also rotation and level?
+                    String payloadString = new String(payload);
+                    IrrigationControllerConfiguration newConfiguration = gson.fromJson(payloadString, IrrigationControllerConfiguration.class);
 
-                    irrigationController.getActuator().setActive(newConfiguration.getActuator().isActive());
+                    irrigationController.getStatus().setValue(newConfiguration.getStatus().getValue());
                     irrigationController.setIrrigationLevel(newConfiguration.getIrrigationLevel());
                     irrigationController.setRotate(newConfiguration.isRotate());
                     irrigationController.setActivationPolicy(newConfiguration.getActivationPolicy());
-                    logger.info("New configuration received on: (" + topic + ")  with: " + newConfiguration);
+                    logger.info("New configuration received on: (" + topic + ")  with: " + payloadString);
                 });
             } else {
                 logger.error("Mqtt client not connected");
@@ -170,5 +173,80 @@ public class IrrigationControllerEmulator {
         } catch (Exception e) {
             logger.error("Error subscribing to configuration topic! Error : " + e.getLocalizedMessage());
         }
+    }
+
+    /**
+     * Function that simulate the irrigation behaviour, in a runnable way to run it into a thread
+     *
+     * @param irrigationController Instance of IrrigationController
+     * @return Runnable
+     */
+    @Contract(value = "_ -> new", pure = true)
+    public static @NotNull Runnable simulateRunning(IrrigationController irrigationController) {
+        return () -> {
+            logger.info("Started simulation...");
+            Date nextRun = irrigationController.getActivationPolicy().getNextDateToActivate();
+            String currentPolicy = irrigationController.getActivationPolicy().getTimeSchedule();
+            boolean isIrrigating = false;
+            while (irrigationController.getBattery().getValue() > 0) {
+                try {
+                    // in case of new policy
+                    if (!currentPolicy.equals(irrigationController.getActivationPolicy().getTimeSchedule())) {
+                        currentPolicy = irrigationController.getActivationPolicy().getTimeSchedule();
+                        nextRun = irrigationController.getActivationPolicy().getNextDateToActivate();
+                        logger.info("[{}] {} new policy read, next activation at {}",
+                                new Date(),
+                                irrigationController.getId(),
+                                nextRun);
+                    }
+
+                    if (irrigationController.getStatus().getValue()) {
+                        // is active
+                        if (!isIrrigating) {
+                            // has to start run?
+                            if (nextRun.before(new Date())) {
+                                nextRun = irrigationController.getActivationPolicy().getNextDateToActivate();
+                                irrigationController.getActivationPolicy().setLastRunStart();
+                                isIrrigating = true;
+
+                                logger.info("[{}] {} irrigating! (ends at {})",
+                                        new Date(),
+                                        irrigationController.getId(),
+                                        new Date(irrigationController.getActivationPolicy().dateWhenFinishRun()));
+                            }
+                        } else {
+                            //still irrigating -> has finished this watering cycle?
+                            if (irrigationController.getActivationPolicy().hasToStop()) {
+                                isIrrigating = false;
+                                logger.info("[{}] {}  current schedule finished, next one starts at {}",
+                                        new Date(),
+                                        irrigationController.getId(),
+                                        irrigationController.getActivationPolicy().getNextDateToActivate());
+                            }
+                        }
+                    } else {
+                        if (isIrrigating) {
+                            isIrrigating = false;
+                            logger.info("[{}] {} stopped before end of schedule, probably it's raining or low temperature",
+                                    new Date(),
+                                    irrigationController.getId());
+                        } else {
+                            if (nextRun.before(new Date())) {
+                                nextRun = irrigationController.getActivationPolicy().getNextDateToActivate();
+                                irrigationController.getActivationPolicy().setLastRunStart();
+                                logger.info("[{}] {} it will skip this run (irrigation status: {}), probably it's raining or low temperature",
+                                        new Date(),
+                                        irrigationController.getId(),
+                                        irrigationController.getStatus().getValue());
+                            }
+                        }
+                    }
+
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
     }
 }

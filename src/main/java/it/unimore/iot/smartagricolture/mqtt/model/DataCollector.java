@@ -16,7 +16,7 @@ import java.util.UUID;
 public class DataCollector {
     private final String id = UUID.randomUUID().toString();
     private final Map<Number, ZoneSettings> zonesSettings = new HashMap<>();
-    private HashMap<String, Number> deviceZoneMap = new HashMap<>();
+    private Map<String, Number> deviceZoneMap = new HashMap<>();
 
     public DataCollector() {
     }
@@ -36,7 +36,7 @@ public class DataCollector {
         return zonesSettings.get(zoneId);
     }
 
-    public HashMap<String, Number> getDeviceZoneMap() {
+    public Map<String, Number> getDeviceZoneMap() {
         return deviceZoneMap;
     }
 

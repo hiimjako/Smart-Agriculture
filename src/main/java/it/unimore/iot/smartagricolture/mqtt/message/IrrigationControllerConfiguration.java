@@ -1,6 +1,6 @@
 package it.unimore.iot.smartagricolture.mqtt.message;
 
-import it.unimore.iot.smartagricolture.mqtt.model.actuator.BooleanActuator;
+import it.unimore.iot.smartagricolture.mqtt.model.actuator.GenericActuator;
 import it.unimore.iot.smartagricolture.mqtt.model.actuator.Timer;
 
 /**
@@ -10,7 +10,7 @@ import it.unimore.iot.smartagricolture.mqtt.model.actuator.Timer;
  * @created 16/01/2022 - 16:18
  */
 public class IrrigationControllerConfiguration {
-    private final BooleanActuator actuator = new BooleanActuator();
+    private final GenericActuator<Boolean> status = new GenericActuator<>();
     private String irrigationLevel = "medium";
     private Timer activationPolicy = new Timer();
     private boolean rotate = false;
@@ -24,8 +24,8 @@ public class IrrigationControllerConfiguration {
         this.rotate = rotate;
     }
 
-    public BooleanActuator getActuator() {
-        return actuator;
+    public GenericActuator<Boolean> getStatus() {
+        return status;
     }
 
     public String getIrrigationLevel() {
@@ -55,7 +55,7 @@ public class IrrigationControllerConfiguration {
     @Override
     public String toString() {
         return "irrigationControllerSetting{" +
-                "actuator=" + actuator +
+                "actuator=" + status +
                 ", irrigationLevel='" + irrigationLevel + '\'' +
                 ", activationPolicy=" + activationPolicy +
                 ", rotate=" + rotate +

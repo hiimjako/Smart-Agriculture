@@ -1,6 +1,6 @@
 package it.unimore.iot.smartagricolture.mqtt.model;
 
-import it.unimore.iot.smartagricolture.mqtt.model.actuator.BooleanActuator;
+import it.unimore.iot.smartagricolture.mqtt.model.actuator.GenericActuator;
 
 /**
  * @author Alberto Moretti, 272804@studenti.unimore.it
@@ -9,19 +9,19 @@ import it.unimore.iot.smartagricolture.mqtt.model.actuator.BooleanActuator;
  * @created 02/01/2022 - 16:18
  */
 public class LightController extends SmartObjectBase {
-    private final BooleanActuator actuator = new BooleanActuator();
-    
+    private final GenericActuator<Boolean> status = new GenericActuator<>(false);
+
     public LightController() {
     }
 
-    public BooleanActuator getActuator() {
-        return actuator;
+    public GenericActuator<Boolean> getStatus() {
+        return status;
     }
 
     @Override
     public String toString() {
         return "LightController{" +
-                "actuator=" + actuator +
+                "actuator=" + status +
                 '}';
     }
 }

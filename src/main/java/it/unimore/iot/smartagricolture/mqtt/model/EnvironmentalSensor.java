@@ -12,10 +12,10 @@ import it.unimore.iot.smartagricolture.mqtt.utils.SenMLRecord;
  * @created 02/01/2022 - 16:18
  */
 public class EnvironmentalSensor extends SmartObjectBase implements ISenMLFormat {
-    private Temperature temperatureSensor = new Temperature();
-    private Brightness brightnessSensor = new Brightness();
-    private Humidity humiditySensor = new Humidity();
-    private Rain rainSensor = new Rain();
+    private Temperature temperatureSensor = new Temperature(0);
+    private Brightness brightnessSensor = new Brightness(0);
+    private Humidity humiditySensor = new Humidity(0);
+    private Rain rainSensor = new Rain(false);
     private Battery battery = new Battery();
 
     public EnvironmentalSensor() {
@@ -66,40 +66,26 @@ public class EnvironmentalSensor extends SmartObjectBase implements ISenMLFormat
     public SenMLPack toSenML(Object object) {
         SenMLPack senMLPack = new SenMLPack();
 
-        SenMLRecord senMLRecord = new SenMLRecord();
         //battery
+        SenMLRecord senMLRecord = this.battery.getSenMLRecord();
         senMLRecord.setBn(this.getId());
         senMLRecord.setBt(System.currentTimeMillis());
-        senMLRecord.setN(Battery.SENML_NAME);
-        senMLRecord.setU(Battery.SENML_UNIT);
-        senMLRecord.setV(this.battery.getBatteryPercentage());
         senMLPack.add(senMLRecord);
 
         //temperatureSensor
-        senMLRecord = new SenMLRecord();
-        senMLRecord.setN(Temperature.SENML_NAME);
-        senMLRecord.setU(Temperature.SENML_UNIT);
-        senMLRecord.setV(this.temperatureSensor.getValue());
+        senMLRecord = this.temperatureSensor.getSenMLRecord();
         senMLPack.add(senMLRecord);
 
         //brightnessSensor
-        senMLRecord = new SenMLRecord();
-        senMLRecord.setN(Brightness.SENML_NAME);
-        senMLRecord.setU(Brightness.SENML_UNIT);
-        senMLRecord.setV(this.brightnessSensor.getValue());
+        senMLRecord = this.brightnessSensor.getSenMLRecord();
         senMLPack.add(senMLRecord);
 
         //humiditySensor
-        senMLRecord = new SenMLRecord();
-        senMLRecord.setN(Humidity.SENML_NAME);
-        senMLRecord.setU(Humidity.SENML_UNIT);
-        senMLRecord.setV(this.humiditySensor.getValue());
+        senMLRecord = this.humiditySensor.getSenMLRecord();
         senMLPack.add(senMLRecord);
 
         //rainSensor
-        senMLRecord = new SenMLRecord();
-        senMLRecord.setN(Rain.SENML_NAME);
-        senMLRecord.setVb(this.rainSensor.isRaining());
+        senMLRecord = this.rainSensor.getSenMLRecord();
         senMLPack.add(senMLRecord);
 
         return senMLPack;
