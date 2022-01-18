@@ -214,7 +214,7 @@ public class IrrigationControllerEmulator {
                                         new Date(irrigationController.getActivationPolicy().dateWhenFinishRun()));
                             }
                         } else {
-                            //still irrigating
+                            //still irrigating -> has finished this watering cycle?
                             if (irrigationController.getActivationPolicy().hasToStop()) {
                                 isIrrigating = false;
                                 logger.info("[{}] {}  current schedule finished, next one starts at {}",
@@ -233,9 +233,10 @@ public class IrrigationControllerEmulator {
                             if (nextRun.before(new Date())) {
                                 nextRun = irrigationController.getActivationPolicy().getNextDateToActivate();
                                 irrigationController.getActivationPolicy().setLastRunStart();
-                                logger.info("[{}] {} it will skip this run (active false), probably it's raining or low temperature",
+                                logger.info("[{}] {} it will skip this run (irrigation status: {}), probably it's raining or low temperature",
                                         new Date(),
-                                        irrigationController.getId());
+                                        irrigationController.getId(),
+                                        irrigationController.getStatus().getValue());
                             }
                         }
                     }
