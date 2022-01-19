@@ -25,7 +25,7 @@ public class Temperature extends GenericSensor<Double> {
     }
 
     public static boolean isUnderTemperature(Double value) {
-        return value >= MqttConfigurationParameters.THRESHOLD_TEMPERATURE_CEL;
+        return value < MqttConfigurationParameters.THRESHOLD_TEMPERATURE_CEL;
     }
 
     public SenMLRecord getSenMLRecord() {
