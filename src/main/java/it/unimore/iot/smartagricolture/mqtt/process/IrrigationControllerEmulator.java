@@ -19,7 +19,7 @@ import static it.unimore.iot.smartagricolture.mqtt.utils.SenMLParser.toSenMLJson
 
 public class IrrigationControllerEmulator {
     private static final int BATTERY_DRAIN = 2;
-    private static final int BATTERY_DRAIN_TICK_PERIOD = 5000;
+    private static final int BATTERY_DRAIN_TICK_PERIOD = 10000;
     private final static Logger logger = LoggerFactory.getLogger(IrrigationControllerEmulator.class);
     private static Gson gson = new Gson();
 
@@ -27,7 +27,7 @@ public class IrrigationControllerEmulator {
         try {
             IrrigationController irrigationController = new IrrigationController();
             // TODO: to remove
-//            irrigationController.setId("test-irrigation-1234");
+            irrigationController.setId("test-irrigation-1234");
             irrigationController.getBattery().setValue(96);
 
             // Simulation of running

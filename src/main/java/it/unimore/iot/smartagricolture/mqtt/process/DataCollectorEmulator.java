@@ -25,7 +25,9 @@ import static it.unimore.iot.smartagricolture.mqtt.utils.utils.getNthParamTopic;
 public class DataCollectorEmulator {
 
     private final static Logger logger = LoggerFactory.getLogger(DataCollectorEmulator.class);
-    private static final boolean sendNewConfigurationDemo = true;
+    private static final boolean sendNewConfigurationDemo = false;
+    private static final boolean simulateRainAndStop = false;
+
     private static final Gson gson = new Gson();
     private static final int zoneIdentifier = 3;
 
@@ -97,6 +99,22 @@ public class DataCollectorEmulator {
                 sendNewZoneConfigurationToAllIrrigationController(mqttClient, zoneIdentifier, dataCollector);
             }
 
+            if (simulateRainAndStop) {
+                // simulazione di cambio configurazione dopo 10 secondi
+                Thread.sleep(3000);
+                defaultIrrigationConfiguration.getActivationPolicy().setTimeSchedule("01 * * * * *");
+                defaultIrrigationConfiguration.getStatus().setValue(true);
+                defaultIrrigationConfiguration.getActivationPolicy().setDurationMinute(10);
+                defaultIrrigationConfiguration.setIrrigationLevel("low");
+                defaultIrrigationConfiguration.setRotate(true);
+                dataCollector.changeDefaultSettingsZone(zoneIdentifier, defaultIrrigationConfiguration);
+                sendNewZoneConfigurationToAllIrrigationController(mqttClient, zoneIdentifier, dataCollector);
+
+                Thread.sleep(20000);
+                defaultIrrigationConfiguration.getStatus().setValue(false);
+                dataCollector.changeDefaultSettingsZone(zoneIdentifier, defaultIrrigationConfiguration);
+                sendNewZoneConfigurationToAllIrrigationController(mqttClient, zoneIdentifier, dataCollector);
+            }
 
 //            mqttClient.disconnect();
 //            mqttClient.close();
@@ -130,6 +148,7 @@ public class DataCollectorEmulator {
                     String sensorType = getNthParamTopic(topic, MqttConfigurationParameters.SENSOR_TOPIC_INDEX);
                     SmartObjectBase smartObjectBase = gson.fromJson(new String(msg.getPayload()), SmartObjectBase.class);
                     String payloadString = new String(msg.getPayload());
+                    logger.info("subscribePresentationTopic -> Message Received (" + topic + ") Message Received: " + new String(payload));
 
                     // FIXME: mettere la zona dinamica, ora sempre questa fissa
                     if (sensorType.equals(MqttConfigurationParameters.SM_OBJECT_LIGHT_TOPIC))
@@ -144,8 +163,6 @@ public class DataCollectorEmulator {
                     if (!msg.isRetained()) {
                         sendNewZoneConfiguration(mqttClient, zoneIdentifier, smartObjectBase.getId(), dataCollector);
                     }
-
-                    logger.info("subscribePresentationTopic -> Message Received (" + topic + ") Message Received: " + new String(payload));
                 });
             } else {
                 logger.error("Mqtt client not connected");

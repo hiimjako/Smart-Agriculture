@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 public class LightControllerEmulator {
     private static final Gson gson = new Gson();
     private final static Logger logger = LoggerFactory.getLogger(LightControllerEmulator.class);
+    private static final int TICK_PERIOD = 10000;
 
 
     public static void main(String[] args) {
@@ -20,7 +21,7 @@ public class LightControllerEmulator {
             LightController lightController = new LightController();
             lightController.getStatus().setValue(true);
             // TODO: to remove
-//            lightController.setId("test-light-1234");
+            lightController.setId("test-light-1234");
 
             MqttClientPersistence persistence = new MemoryPersistence();
             IMqttClient mqttClient = new MqttClient(
@@ -44,8 +45,8 @@ public class LightControllerEmulator {
 
 
             for (int i = 0; i < 1000000; i++) {
-                logger.info("   LIGHT STATUS: active -> " + lightController.getStatus().getValue());
-                Thread.sleep(2000);
+                logger.info("Light status: active -> " + lightController.getStatus().getValue());
+                Thread.sleep(TICK_PERIOD);
             }
 
             mqttClient.disconnect();
