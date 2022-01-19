@@ -27,6 +27,8 @@ public class IrrigationControllerEmulator {
         try {
             IrrigationController irrigationController = new IrrigationController();
             // TODO: to remove
+            irrigationController.setManufacturer("bticino");
+            irrigationController.setSoftwareVersion("2.0.0");
             irrigationController.setId("test-irrigation-1234");
             irrigationController.getBattery().setValue(96);
 
@@ -56,11 +58,6 @@ public class IrrigationControllerEmulator {
             subscribeConfigurationTopic(mqttClient, irrigationController);
 
 
-//            for (int i = 0; i < 1000000; i++) {
-//                logger.info("   IRRIGATION STATUS: " + irrigationController);
-//                Thread.sleep(1000);
-//            }
-
             while (irrigationController.getBattery().getValue() > 0) {
                 irrigationController.getBattery().decreaseBatteryLevelBy(BATTERY_DRAIN);
                 publishDeviceTelemetry(mqttClient, irrigationController);
@@ -80,7 +77,7 @@ public class IrrigationControllerEmulator {
      * Send the sensor infos Payload to the specified MQTT topic
      *
      * @param mqttClient           The mqtt client
-     * @param irrigationDescriptor Instance of IrrigationController, to get ids and battery status
+     * @param irrigationDescriptor The info descriptor for presentation
      */
     public static void publishDeviceInfo(IMqttClient mqttClient, IrrigationController irrigationDescriptor) {
         try {
@@ -90,7 +87,7 @@ public class IrrigationControllerEmulator {
                     irrigationDescriptor.getId(),
                     MqttConfigurationParameters.PRESENTATION_TOPIC);
 
-            String payloadString = gson.toJson(irrigationDescriptor);
+            String payloadString = gson.toJson(irrigationDescriptor.getDeviceInfo());
             if (mqttClient.isConnected() && payloadString != null && topic != null) {
                 MqttMessage msg = new MqttMessage(payloadString.getBytes());
                 msg.setQos(1);

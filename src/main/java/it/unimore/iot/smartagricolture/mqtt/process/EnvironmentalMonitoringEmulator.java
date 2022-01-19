@@ -27,6 +27,8 @@ public class EnvironmentalMonitoringEmulator {
 
             EnvironmentalSensor environmentalSensor = new EnvironmentalSensor();
             environmentalSensor.setId("test-env-1234");
+            environmentalSensor.setManufacturer("simens");
+            environmentalSensor.setSoftwareVersion("1.4.3");
             environmentalSensor.getBattery().setValue(50);
             environmentalSensor.getRainSensor().setValue(false);
             environmentalSensor.getTemperatureSensor().setValue(MqttConfigurationParameters.THRESHOLD_TEMPERATURE_CEL + 1);
@@ -81,18 +83,18 @@ public class EnvironmentalMonitoringEmulator {
     /**
      * Send the sensor infos Payload to the specified MQTT topic
      *
-     * @param mqttClient          The mqtt client
-     * @param environmentalSensor Instance of EnvironmentalSensor, to get ids and battery status
+     * @param mqttClient        The mqtt client
+     * @param environmentalInfo The info descriptor for presentation
      */
-    public static void publishDeviceInfo(IMqttClient mqttClient, EnvironmentalSensor environmentalSensor) {
+    public static void publishDeviceInfo(IMqttClient mqttClient, EnvironmentalSensor environmentalInfo) {
         try {
             String topic = String.format("%s/%s/%s/%s",
                     MqttConfigurationParameters.MQTT_BASIC_TOPIC,
                     MqttConfigurationParameters.SM_OBJECT_ENVIRONMENTAL_TOPIC,
-                    environmentalSensor.getId(),
+                    environmentalInfo.getId(),
                     MqttConfigurationParameters.PRESENTATION_TOPIC);
 
-            String payloadString = gson.toJson(environmentalSensor);
+            String payloadString = gson.toJson(environmentalInfo.getDeviceInfo());
             if (mqttClient.isConnected() && payloadString != null && topic != null) {
                 MqttMessage msg = new MqttMessage(payloadString.getBytes());
                 msg.setQos(1);

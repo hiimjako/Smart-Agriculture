@@ -10,8 +10,11 @@ import it.unimore.iot.smartagricolture.mqtt.model.actuator.GenericActuator;
  */
 public class LightController extends SmartObjectBase {
     private final GenericActuator<Boolean> status = new GenericActuator<>(false);
+    public static final String DEVICE_TYPE = "light";
 
     public LightController() {
+        super();
+        this.setDeviceType(DEVICE_TYPE);
     }
 
     public GenericActuator<Boolean> getStatus() {

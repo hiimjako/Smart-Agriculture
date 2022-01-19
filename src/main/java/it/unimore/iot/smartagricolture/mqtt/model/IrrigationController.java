@@ -20,21 +20,15 @@ public class IrrigationController extends SmartObjectBase implements ISenMLForma
     private final GenericActuator<Boolean> status = new GenericActuator<>(false);
     private String irrigationLevel = "medium";
     private Timer activationPolicy = new Timer();
-    public static final ArrayList<String> ALLOWED_IRRIGATION_LEVELS = new ArrayList<>(Arrays.asList("low", "medium", "high"));
     private boolean rotate = false;
     private final Battery battery = new Battery();
+    public static final ArrayList<String> ALLOWED_IRRIGATION_LEVELS = new ArrayList<>(Arrays.asList("low", "medium", "high"));
+    public static final String DEVICE_TYPE = "irrigation";
+
 
     public IrrigationController() {
-    }
-
-    public IrrigationController(Timer activationPolicy) {
-        this.activationPolicy = activationPolicy;
-    }
-
-    public IrrigationController(Timer activationPolicy, String irrigationLevel, boolean rotate) {
-        this.activationPolicy = activationPolicy;
-        this.setIrrigationLevel(irrigationLevel);
-        this.rotate = rotate;
+        super();
+        this.setDeviceType(DEVICE_TYPE);
     }
 
     public String getIrrigationLevel() {

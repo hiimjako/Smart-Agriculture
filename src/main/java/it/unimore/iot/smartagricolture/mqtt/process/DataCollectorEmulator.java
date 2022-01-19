@@ -20,7 +20,6 @@ import java.util.Date;
 import java.util.Optional;
 
 import static it.unimore.iot.smartagricolture.mqtt.utils.SenMLParser.parseSenMLJson;
-import static it.unimore.iot.smartagricolture.mqtt.utils.utils.getNthParamTopic;
 
 public class DataCollectorEmulator {
 
@@ -145,23 +144,22 @@ public class DataCollectorEmulator {
                 logger.info("Subscribed to topic: (" + topicToSubscribe + ")");
                 mqttClient.subscribe(topicToSubscribe, SubscriptionQoS, (topic, msg) -> {
                     byte[] payload = msg.getPayload();
-                    String sensorType = getNthParamTopic(topic, MqttConfigurationParameters.SENSOR_TOPIC_INDEX);
-                    SmartObjectBase smartObjectBase = gson.fromJson(new String(msg.getPayload()), SmartObjectBase.class);
-                    String payloadString = new String(msg.getPayload());
-                    logger.info("subscribePresentationTopic -> Message Received (" + topic + ") Message Received: " + new String(payload));
+                    String payloadString = new String(payload);
+                    SmartObjectBase deviceInfo = gson.fromJson(new String(msg.getPayload()), SmartObjectBase.class);
+                    String deviceType = deviceInfo.getDeviceType();
+
+                    logger.info("subscribePresentationTopic -> Message Received (" + topic + ") Message Received: " + payloadString);
 
                     // FIXME: mettere la zona dinamica, ora sempre questa fissa
-                    if (sensorType.equals(MqttConfigurationParameters.SM_OBJECT_LIGHT_TOPIC))
-                        dataCollector.addSmartObjectToZone(zoneIdentifier, gson.fromJson(payloadString, LightController.class));
-                    else if (sensorType.equals(MqttConfigurationParameters.SM_OBJECT_IRRIGATION_TOPIC))
-                        dataCollector.addSmartObjectToZone(zoneIdentifier, gson.fromJson(payloadString, IrrigationController.class));
-                    else if (sensorType.equals(MqttConfigurationParameters.SM_OBJECT_ENVIRONMENTAL_TOPIC))
-                        dataCollector.addSmartObjectToZone(zoneIdentifier, gson.fromJson(payloadString, EnvironmentalSensor.class));
-                    else
-                        logger.error("subscribePresentationTopic -> Unable to convert object: {}", payloadString);
+                    switch (deviceType) {
+                        case LightController.DEVICE_TYPE -> dataCollector.addSmartObjectToZone(zoneIdentifier, gson.fromJson(payloadString, LightController.class));
+                        case IrrigationController.DEVICE_TYPE -> dataCollector.addSmartObjectToZone(zoneIdentifier, gson.fromJson(payloadString, IrrigationController.class));
+                        case EnvironmentalSensor.DEVICE_TYPE -> dataCollector.addSmartObjectToZone(zoneIdentifier, gson.fromJson(payloadString, EnvironmentalSensor.class));
+                        default -> logger.error("subscribePresentationTopic -> Unable to convert object: {}", payloadString);
+                    }
 
                     if (!msg.isRetained()) {
-                        sendNewZoneConfiguration(mqttClient, zoneIdentifier, smartObjectBase.getId(), dataCollector);
+                        sendNewZoneConfiguration(mqttClient, zoneIdentifier, deviceInfo.getId(), dataCollector);
                     }
                 });
             } else {

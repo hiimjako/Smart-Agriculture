@@ -12,22 +12,16 @@ import it.unimore.iot.smartagricolture.mqtt.utils.SenMLRecord;
  * @created 02/01/2022 - 16:18
  */
 public class EnvironmentalSensor extends SmartObjectBase implements ISenMLFormat {
-    private Temperature temperatureSensor = new Temperature(0);
-    private Brightness brightnessSensor = new Brightness(0);
-    private Humidity humiditySensor = new Humidity(0);
-    private Rain rainSensor = new Rain(false);
-    private Battery battery = new Battery();
+    private final Temperature temperatureSensor = new Temperature(0);
+    private final Brightness brightnessSensor = new Brightness(0);
+    private final Humidity humiditySensor = new Humidity(0);
+    private final Rain rainSensor = new Rain(false);
+    private final Battery battery = new Battery();
+    public static final String DEVICE_TYPE = "environmental";
 
     public EnvironmentalSensor() {
-    }
-
-
-    public EnvironmentalSensor(double temperature, double brightness, double humidity, boolean rainLevel, int batteryPercentage) {
-        this.temperatureSensor = new Temperature(temperature);
-        this.brightnessSensor = new Brightness(brightness);
-        this.humiditySensor = new Humidity(humidity);
-        this.rainSensor = new Rain(rainLevel);
-        this.battery = new Battery(batteryPercentage);
+        super();
+        this.setDeviceType(DEVICE_TYPE);
     }
 
     public Temperature getTemperatureSensor() {

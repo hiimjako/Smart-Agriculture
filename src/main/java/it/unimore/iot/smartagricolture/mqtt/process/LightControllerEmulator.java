@@ -21,6 +21,7 @@ public class LightControllerEmulator {
             LightController lightController = new LightController();
             lightController.getStatus().setValue(true);
             // TODO: to remove
+            lightController.setManufacturer("simens");
             lightController.setId("test-light-1234");
 
             MqttClientPersistence persistence = new MemoryPersistence();
@@ -62,18 +63,18 @@ public class LightControllerEmulator {
     /**
      * Send the sensor infos Payload to the specified MQTT topic
      *
-     * @param mqttClient      The mqtt client
-     * @param lightDescriptor Instance of LightController
+     * @param mqttClient The mqtt client
+     * @param lightInfo  The info descriptor for presentation
      */
-    public static void publishDeviceInfo(IMqttClient mqttClient, LightController lightDescriptor) {
+    public static void publishDeviceInfo(IMqttClient mqttClient, LightController lightInfo) {
         try {
             String topic = String.format("%s/%s/%s/%s",
                     MqttConfigurationParameters.MQTT_BASIC_TOPIC,
                     MqttConfigurationParameters.SM_OBJECT_LIGHT_TOPIC,
-                    lightDescriptor.getId(),
+                    lightInfo.getId(),
                     MqttConfigurationParameters.PRESENTATION_TOPIC);
 
-            String payloadString = gson.toJson(lightDescriptor);
+            String payloadString = gson.toJson(lightInfo.getDeviceInfo());
             if (mqttClient.isConnected() && payloadString != null && topic != null) {
                 MqttMessage msg = new MqttMessage(payloadString.getBytes());
                 msg.setQos(1);

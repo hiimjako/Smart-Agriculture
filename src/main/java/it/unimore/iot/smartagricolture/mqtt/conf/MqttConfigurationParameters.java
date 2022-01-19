@@ -26,7 +26,6 @@ public class MqttConfigurationParameters {
     public static final String MQTT_BASIC_TOPIC = dotenv.get("MQTT_BASIC_TOPIC", "/iot/agriculture/device");
 
     //  sensors
-    public static final int SENSOR_TOPIC_INDEX = Integer.parseInt(dotenv.get("SENSOR_TOPIC_INDEX", "4"));
     public static final String SM_OBJECT_LIGHT_TOPIC = dotenv.get("SM_OBJECT_LIGHT_TOPIC", "light");
     public static final String SM_OBJECT_IRRIGATION_TOPIC = dotenv.get("SM_OBJECT_IRRIGATION_TOPIC", "irrigation");
     public static final String SM_OBJECT_ENVIRONMENTAL_TOPIC = dotenv.get("SM_OBJECT_ENVIRONMENTAL_TOPIC", "environmental");
