@@ -79,8 +79,8 @@ public class ZoneSettings {
 
     public <T extends SmartObjectBase> Optional<T> getSmartObjectById(String deviceId, Class<T> type) {
         SmartObjectBase ret = this.smartObjects.get(deviceId);
-        if (ret == null) return Optional.empty();
-        return Optional.of(type.cast(this.smartObjects.get(deviceId)));
+        if (!type.isInstance(ret)) return Optional.empty();
+        return Optional.of(type.cast(ret));
 
         // for (SmartObjectBase sm : this.smartObjects) {
         //    if (sm.getId().equals(deviceId)) return Optional.of(type.cast(sm));
