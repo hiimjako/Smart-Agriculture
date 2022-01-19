@@ -122,7 +122,7 @@ public class EnvironmentalMonitoringEmulator {
                     environmentalSensor.getId(),
                     MqttConfigurationParameters.TELEMETRY_TOPIC);
 
-            SenMLPack senml = environmentalSensor.toSenML(environmentalSensor);
+            SenMLPack senml = environmentalSensor.toSenML();
             Optional<String> payload = toSenMLJson(senml);
 
             if (mqttClient.isConnected() && payload.isPresent() && topic != null) {

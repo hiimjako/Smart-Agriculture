@@ -120,7 +120,7 @@ public class IrrigationControllerEmulator {
                     irrigationDescriptor.getId(),
                     MqttConfigurationParameters.TELEMETRY_TOPIC);
 
-            SenMLPack senml = irrigationDescriptor.toSenML(irrigationDescriptor);
+            SenMLPack senml = irrigationDescriptor.toSenML();
             Optional<String> payload = toSenMLJson(senml);
 
             if (mqttClient.isConnected() && payload.isPresent() && topic != null) {

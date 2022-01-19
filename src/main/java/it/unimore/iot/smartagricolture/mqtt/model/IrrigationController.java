@@ -16,7 +16,7 @@ import java.util.Arrays;
  * @project smart-agriculture
  * @created 02/01/2022 - 16:18
  */
-public class IrrigationController extends SmartObjectBase implements ISenMLFormat<IrrigationController> {
+public class IrrigationController extends SmartObjectBase implements ISenMLFormat {
     private final GenericActuator<Boolean> status = new GenericActuator<>(false);
     private String irrigationLevel = "medium";
     private Timer activationPolicy = new Timer();
@@ -85,7 +85,7 @@ public class IrrigationController extends SmartObjectBase implements ISenMLForma
     }
 
     @Override
-    public SenMLPack toSenML(IrrigationController object) {
+    public SenMLPack toSenML() {
         SenMLPack senMLPack = new SenMLPack();
 
         SenMLRecord senMLRecord = this.battery.getSenMLRecord();

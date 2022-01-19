@@ -8,8 +8,8 @@ import it.unimore.iot.smartagricolture.mqtt.utils.SenMLPack;
  * @project smart-agriculture
  * @created 10/01/2022 - 18:51
  */
-public interface ISenMLFormat<T> {
-    SenMLPack toSenML(T object);
+public interface ISenMLFormat {
+    SenMLPack toSenML();
 
 //    T parseSenML(SenMLPack senMLPack);
 }

@@ -63,7 +63,7 @@ public class EnvironmentalSensor extends SmartObjectBase implements ISenMLFormat
     }
 
     @Override
-    public SenMLPack toSenML(Object object) {
+    public SenMLPack toSenML() {
         SenMLPack senMLPack = new SenMLPack();
 
         //battery
