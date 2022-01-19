@@ -3,6 +3,7 @@ package it.unimore.iot.smartagricolture.mqtt.process;
 import com.google.gson.Gson;
 import it.unimore.iot.smartagricolture.mqtt.conf.MqttConfigurationParameters;
 import it.unimore.iot.smartagricolture.mqtt.model.EnvironmentalSensor;
+import it.unimore.iot.smartagricolture.mqtt.model.GeoLocation;
 import it.unimore.iot.smartagricolture.mqtt.utils.SenMLPack;
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
@@ -29,6 +30,7 @@ public class EnvironmentalMonitoringEmulator {
             environmentalSensor.setId("test-env-1234");
             environmentalSensor.setManufacturer("simens");
             environmentalSensor.setSoftwareVersion("1.4.3");
+            environmentalSensor.setLocation(new GeoLocation(10, 12));
             environmentalSensor.getBattery().setValue(50);
             environmentalSensor.getRainSensor().setValue(false);
             environmentalSensor.getTemperatureSensor().setValue(MqttConfigurationParameters.THRESHOLD_TEMPERATURE_CEL + 1);

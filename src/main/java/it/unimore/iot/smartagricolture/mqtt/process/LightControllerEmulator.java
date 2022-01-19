@@ -3,6 +3,7 @@ package it.unimore.iot.smartagricolture.mqtt.process;
 import com.google.gson.Gson;
 import it.unimore.iot.smartagricolture.mqtt.conf.MqttConfigurationParameters;
 import it.unimore.iot.smartagricolture.mqtt.message.LightControllerConfiguration;
+import it.unimore.iot.smartagricolture.mqtt.model.GeoLocation;
 import it.unimore.iot.smartagricolture.mqtt.model.LightController;
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
@@ -22,6 +23,8 @@ public class LightControllerEmulator {
             lightController.getStatus().setValue(true);
             // TODO: to remove
             lightController.setManufacturer("simens");
+            lightController.setSoftwareVersion("1.0.1");
+            lightController.setLocation(new GeoLocation(24, 15));
             lightController.setId("test-light-1234");
 
             MqttClientPersistence persistence = new MemoryPersistence();

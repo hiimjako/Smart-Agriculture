@@ -3,6 +3,7 @@ package it.unimore.iot.smartagricolture.mqtt.process;
 import com.google.gson.Gson;
 import it.unimore.iot.smartagricolture.mqtt.conf.MqttConfigurationParameters;
 import it.unimore.iot.smartagricolture.mqtt.message.IrrigationControllerConfiguration;
+import it.unimore.iot.smartagricolture.mqtt.model.GeoLocation;
 import it.unimore.iot.smartagricolture.mqtt.model.IrrigationController;
 import it.unimore.iot.smartagricolture.mqtt.utils.SenMLPack;
 import org.eclipse.paho.client.mqttv3.*;
@@ -29,6 +30,7 @@ public class IrrigationControllerEmulator {
             // TODO: to remove
             irrigationController.setManufacturer("bticino");
             irrigationController.setSoftwareVersion("2.0.0");
+            irrigationController.setLocation(new GeoLocation(14, 15));
             irrigationController.setId("test-irrigation-1234");
             irrigationController.getBattery().setValue(96);
 

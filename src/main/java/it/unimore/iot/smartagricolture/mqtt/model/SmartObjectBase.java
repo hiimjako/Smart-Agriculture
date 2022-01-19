@@ -13,17 +13,19 @@ public class SmartObjectBase {
     private String manufacturer;
     private String softwareVersion = "1.0.0";
     private String deviceType = "generic";
+    private GeoLocation location = new GeoLocation();
 
     public static final String SENML_ID = "id";
 
     public SmartObjectBase() {
     }
 
-    protected SmartObjectBase(String id, String manufacturer, String softwareVersion, String deviceType) {
+    protected SmartObjectBase(String id, String manufacturer, String softwareVersion, String deviceType, GeoLocation location) {
         this.id = id;
         this.manufacturer = manufacturer;
         this.softwareVersion = softwareVersion;
         this.deviceType = deviceType;
+        this.location = location;
     }
 
     public String getId() {
@@ -58,8 +60,16 @@ public class SmartObjectBase {
         this.deviceType = deviceType;
     }
 
+    public GeoLocation getLocation() {
+        return location;
+    }
+
+    public void setLocation(GeoLocation location) {
+        this.location = location;
+    }
+
     public SmartObjectBase getDeviceInfo() {
-        return new SmartObjectBase(this.getId(), this.getManufacturer(), this.getSoftwareVersion(), this.getDeviceType());
+        return new SmartObjectBase(this.getId(), this.getManufacturer(), this.getSoftwareVersion(), this.getDeviceType(), this.getLocation());
     }
 
     @Override
@@ -69,6 +79,7 @@ public class SmartObjectBase {
                 ", manufacturer='" + manufacturer + '\'' +
                 ", softwareVersion='" + softwareVersion + '\'' +
                 ", deviceType='" + deviceType + '\'' +
+                ", location=" + location +
                 '}';
     }
 }
