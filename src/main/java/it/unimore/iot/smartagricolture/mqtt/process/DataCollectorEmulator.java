@@ -25,7 +25,7 @@ import static it.unimore.iot.smartagricolture.mqtt.utils.utils.getNthParamTopic;
 public class DataCollectorEmulator {
 
     private final static Logger logger = LoggerFactory.getLogger(DataCollectorEmulator.class);
-    private static final boolean sendNewConfigurationDemo = false;
+    private static final boolean sendNewConfigurationDemo = true;
     private static final boolean simulateRainAndStop = false;
 
     private static final Gson gson = new Gson();
@@ -376,9 +376,12 @@ public class DataCollectorEmulator {
         ZoneSettings zoneSettings = dataCollector.getZoneSettings(zoneId);
         if (zoneSettings != null) {
             logger.info("Sending new configuration for lights!");
-            for (SmartObjectBase smartObject : zoneSettings.getSmartObjects()) {
-                if (smartObject instanceof LightController)
-                    sendNewZoneConfiguration(mqttClient, zoneId, smartObject.getId(), dataCollector);
+            for (String deviceId : zoneSettings.getAllSmartObjectIds()) {
+                Optional<SmartObjectBase> object = zoneSettings.getSmartObjectById(deviceId);
+                if (object.isPresent()) {
+                    if (object.get() instanceof LightController)
+                        sendNewZoneConfiguration(mqttClient, zoneId, deviceId, dataCollector);
+                }
             }
         } else {
             logger.error("Default configuration not found");
@@ -398,9 +401,12 @@ public class DataCollectorEmulator {
         ZoneSettings zoneSettings = dataCollector.getZoneSettings(zoneId);
         if (zoneSettings != null) {
             logger.info("Sending new configuration for irrigation!");
-            for (SmartObjectBase smartObject : zoneSettings.getSmartObjects()) {
-                if (smartObject instanceof IrrigationController)
-                    sendNewZoneConfiguration(mqttClient, zoneId, smartObject.getId(), dataCollector);
+            for (String deviceId : zoneSettings.getAllSmartObjectIds()) {
+                Optional<SmartObjectBase> object = zoneSettings.getSmartObjectById(deviceId);
+                if (object.isPresent()) {
+                    if (object.get() instanceof IrrigationController)
+                        sendNewZoneConfiguration(mqttClient, zoneId, deviceId, dataCollector);
+                }
             }
         } else {
             logger.error("Default configuration not found");
@@ -421,8 +427,8 @@ public class DataCollectorEmulator {
         ZoneSettings zoneSettings = dataCollector.getZoneSettings(zoneId);
         if (zoneSettings != null) {
             logger.info("Sending new configuration for all actuators!");
-            for (SmartObjectBase smartObject : zoneSettings.getSmartObjects()) {
-                sendNewZoneConfiguration(mqttClient, zoneId, smartObject.getId(), dataCollector);
+            for (String deviceId : zoneSettings.getAllSmartObjectIds()) {
+                sendNewZoneConfiguration(mqttClient, zoneId, deviceId, dataCollector);
             }
         } else {
             logger.error("Default configuration not found");

@@ -3,9 +3,9 @@ package it.unimore.iot.smartagricolture.mqtt.model;
 import it.unimore.iot.smartagricolture.mqtt.message.IrrigationControllerConfiguration;
 import it.unimore.iot.smartagricolture.mqtt.message.LightControllerConfiguration;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * @author Alberto Moretti, 272804@studenti.unimore.it
@@ -21,18 +21,6 @@ public class ZoneSettings {
 
     public ZoneSettings() {
     }
-
-    public ArrayList<SmartObjectBase> getSmartObjects() {
-        ArrayList<SmartObjectBase> ret = new ArrayList<>();
-        for (String key : this.smartObjects.keySet()) {
-            ret.add(this.smartObjects.get(key));
-        }
-        return ret;
-    }
-
-//    public void setSmartObjects(ArrayList<SmartObjectBase> smartObjects) {
-//        this.smartObjects = smartObjects;
-//    }
 
     public LightControllerConfiguration getLightControllerConfiguration() {
         return lightControllerConfiguration;
@@ -59,11 +47,9 @@ public class ZoneSettings {
         return false;
     }
 
-//    public <T> SmartObjectBase getSmartObjectsByType(T classType) {
-//        return this.smartObjects.stream().filter(smartObjectBase -> {
-//            return smartObjectBase instanceof classType;
-//        })
-//    }
+    public Set<String> getAllSmartObjectIds() {
+        return this.smartObjects.keySet();
+    }
 
     public Optional<SmartObjectBase> getSmartObjectById(String deviceId) {
         SmartObjectBase ret = this.smartObjects.get(deviceId);
