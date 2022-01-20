@@ -10,6 +10,8 @@ Install java `Open JDK 17.0.2` and use it in the intelliJ project setup
 
 # How to run this project
 
+switch to branch: `demo-version`
+
 Launch demo files:
 
 1. DataCollectorEmulator -> manager
