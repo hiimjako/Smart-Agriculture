@@ -31,7 +31,7 @@ public class IrrigationControllerEmulator {
             irrigationController.setManufacturer("bticino");
             irrigationController.setSoftwareVersion("2.0.0");
             irrigationController.setLocation(new GeoLocation(14, 15));
-            irrigationController.setId("test-irrigation-1234");
+//            irrigationController.setId("test-irrigation-1234");
             irrigationController.getBattery().setValue(96);
 
             // Simulation of running

@@ -24,11 +24,13 @@ import static it.unimore.iot.smartagricolture.mqtt.utils.SenMLParser.parseSenMLJ
 public class DataCollectorEmulator {
 
     private final static Logger logger = LoggerFactory.getLogger(DataCollectorEmulator.class);
-    private static final boolean sendNewConfigurationDemo = true;
-    private static final boolean simulateRainAndStop = false;
-
     private static final Gson gson = new Gson();
     private static final int zoneIdentifier = 3;
+
+    private static final int zoneIdentifierDemo = 5;
+    public static int maxItemInDefaultZoneDemo = 4;
+    private static final boolean sendNewConfigurationDemo = false;
+    private static final boolean simulateRainAndStopDemo = false;
 
     public static void main(String[] args) {
         try {
@@ -56,22 +58,30 @@ public class DataCollectorEmulator {
             // Creating the zone --> should be done into the dashboard when the operator installs
             // the devices, same for the default configurations
             dataCollector.createZone(zoneIdentifier);
+            dataCollector.createZone(zoneIdentifierDemo);
 
             // Default lightController: Esempio di configurazione custom, con le luci attive
             LightControllerConfiguration defaultLightConfiguration = new LightControllerConfiguration();
             defaultLightConfiguration.getStatus().setValue(true);
             dataCollector.changeDefaultSettingsZone(zoneIdentifier, defaultLightConfiguration);
+            dataCollector.changeDefaultSettingsZone(zoneIdentifierDemo, defaultLightConfiguration);
 
             // Default irrigationController: Esempio di configurazione custom
             IrrigationControllerConfiguration defaultIrrigationConfiguration = new IrrigationControllerConfiguration();
             defaultIrrigationConfiguration.getStatus().setValue(true);
             defaultIrrigationConfiguration.getActivationPolicy().setTimeSchedule("01 * * * * *");
-            // Test per interruzione prima della fine
-//            defaultIrrigationConfiguration.getActivationPolicy().setDurationHour(1);
             defaultIrrigationConfiguration.getActivationPolicy().setDurationSecond(20);
             defaultIrrigationConfiguration.setIrrigationLevel("medium");
             defaultIrrigationConfiguration.setRotate(false);
             dataCollector.changeDefaultSettingsZone(zoneIdentifier, defaultIrrigationConfiguration);
+
+            defaultIrrigationConfiguration = new IrrigationControllerConfiguration();
+            defaultIrrigationConfiguration.getStatus().setValue(true);
+            defaultIrrigationConfiguration.getActivationPolicy().setTimeSchedule("* * 01 * * *");
+            defaultIrrigationConfiguration.getActivationPolicy().setDurationMinute(20);
+            defaultIrrigationConfiguration.setIrrigationLevel("medium");
+            defaultIrrigationConfiguration.setRotate(false);
+            dataCollector.changeDefaultSettingsZone(zoneIdentifierDemo, defaultIrrigationConfiguration);
 
             // Subscribing
             subscribePresentationTopic(mqttClient, dataCollector);
@@ -79,7 +89,7 @@ public class DataCollectorEmulator {
             subscribeEnvironmentControllerTelemetryTopic(mqttClient, dataCollector);
 
             // Send as retained the default configurations -> reset retained with default
-            sendNewZoneConfigurationToAllSmartObjects(mqttClient, zoneIdentifier, dataCollector);
+            // sendNewZoneConfigurationToAllSmartObjects(mqttClient, zoneIdentifier, dataCollector);
 
             if (sendNewConfigurationDemo) {
                 // simulazione di cambio configurazione dopo 10 secondi
@@ -98,7 +108,7 @@ public class DataCollectorEmulator {
                 sendNewZoneConfigurationToAllIrrigationController(mqttClient, zoneIdentifier, dataCollector);
             }
 
-            if (simulateRainAndStop) {
+            if (simulateRainAndStopDemo) {
                 // simulazione di cambio configurazione dopo 10 secondi
                 Thread.sleep(3000);
                 defaultIrrigationConfiguration.getActivationPolicy().setTimeSchedule("01 * * * * *");
@@ -147,19 +157,24 @@ public class DataCollectorEmulator {
                     String payloadString = new String(payload);
                     SmartObjectBase deviceInfo = gson.fromJson(new String(msg.getPayload()), SmartObjectBase.class);
                     String deviceType = deviceInfo.getDeviceType();
+                    int zoneId = zoneIdentifier;
+
+                    if (dataCollector.getZoneSettings(zoneId).getAllSmartObjectIds().size() >= maxItemInDefaultZoneDemo) {
+                        zoneId = zoneIdentifierDemo;
+                    }
 
                     logger.info("subscribePresentationTopic -> Message Received (" + topic + ") Message Received: " + payloadString);
 
                     // FIXME: mettere la zona dinamica, ora sempre questa fissa
                     switch (deviceType) {
-                        case LightController.DEVICE_TYPE -> dataCollector.addSmartObjectToZone(zoneIdentifier, gson.fromJson(payloadString, LightController.class));
-                        case IrrigationController.DEVICE_TYPE -> dataCollector.addSmartObjectToZone(zoneIdentifier, gson.fromJson(payloadString, IrrigationController.class));
-                        case EnvironmentalSensor.DEVICE_TYPE -> dataCollector.addSmartObjectToZone(zoneIdentifier, gson.fromJson(payloadString, EnvironmentalSensor.class));
+                        case LightController.DEVICE_TYPE -> dataCollector.addSmartObjectToZone(zoneId, gson.fromJson(payloadString, LightController.class));
+                        case IrrigationController.DEVICE_TYPE -> dataCollector.addSmartObjectToZone(zoneId, gson.fromJson(payloadString, IrrigationController.class));
+                        case EnvironmentalSensor.DEVICE_TYPE -> dataCollector.addSmartObjectToZone(zoneId, gson.fromJson(payloadString, EnvironmentalSensor.class));
                         default -> logger.error("subscribePresentationTopic -> Unable to convert object: {}", payloadString);
                     }
 
                     if (!msg.isRetained()) {
-                        sendNewZoneConfiguration(mqttClient, zoneIdentifier, deviceInfo.getId(), dataCollector);
+                        sendNewZoneConfiguration(mqttClient, zoneId, deviceInfo.getId(), dataCollector);
                     }
                 });
             } else {

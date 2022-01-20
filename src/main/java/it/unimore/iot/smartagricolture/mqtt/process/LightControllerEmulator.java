@@ -13,19 +13,19 @@ import org.slf4j.LoggerFactory;
 public class LightControllerEmulator {
     private static final Gson gson = new Gson();
     private final static Logger logger = LoggerFactory.getLogger(LightControllerEmulator.class);
-    private static final int TICK_PERIOD = 10000;
+    private static final int TICK_PERIOD = 5000;
 
 
     public static void main(String[] args) {
         try {
 
             LightController lightController = new LightController();
-            lightController.getStatus().setValue(true);
+            lightController.getStatus().setValue(false);
             // TODO: to remove
             lightController.setManufacturer("simens");
             lightController.setSoftwareVersion("1.0.1");
             lightController.setLocation(new GeoLocation(24, 15));
-            lightController.setId("test-light-1234");
+//            lightController.setId("test-light-1234");
 
             MqttClientPersistence persistence = new MemoryPersistence();
             IMqttClient mqttClient = new MqttClient(
