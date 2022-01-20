@@ -2,9 +2,13 @@
 
 Alberto Moretti IoT project 2021/2022
 
-# How to run this project
+# setup
 
 Create mosquitto image: `docker-compose up`
+
+Install java `Open JDK 17.0.2` and use it in the intelliJ project setup
+
+# How to run this project
 
 Launch demo files:
 
