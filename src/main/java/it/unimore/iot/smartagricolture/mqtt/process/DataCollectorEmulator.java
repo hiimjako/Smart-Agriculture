@@ -163,7 +163,7 @@ public class DataCollectorEmulator {
                         zoneId = zoneIdentifierDemo;
                     }
 
-                    logger.info("subscribePresentationTopic -> Message Received (" + topic + ") Message Received: " + payloadString);
+                    logger.info("subscribePresentationTopic -> Zone:" + zoneId +", Message Received (" + topic + ") Message Received: " + payloadString);
 
                     // FIXME: mettere la zona dinamica, ora sempre questa fissa
                     switch (deviceType) {
@@ -388,7 +388,7 @@ public class DataCollectorEmulator {
     public static void sendNewZoneConfigurationToAllLightController(@NotNull IMqttClient mqttClient, int zoneId, DataCollector dataCollector) {
         ZoneSettings zoneSettings = dataCollector.getZoneSettings(zoneId);
         if (zoneSettings != null) {
-            logger.info("Sending new configuration for lights!");
+            logger.info("Sending new configuration for lights! zone: {}", zoneId);
             for (String deviceId : zoneSettings.getAllSmartObjectIds()) {
                 Optional<SmartObjectBase> object = zoneSettings.getSmartObjectById(deviceId);
                 if (object.isPresent()) {
@@ -413,7 +413,7 @@ public class DataCollectorEmulator {
     public static void sendNewZoneConfigurationToAllIrrigationController(@NotNull IMqttClient mqttClient, int zoneId, DataCollector dataCollector) {
         ZoneSettings zoneSettings = dataCollector.getZoneSettings(zoneId);
         if (zoneSettings != null) {
-            logger.info("Sending new configuration for irrigation!");
+            logger.info("Sending new configuration for irrigation! zone: {}", zoneId);
             for (String deviceId : zoneSettings.getAllSmartObjectIds()) {
                 Optional<SmartObjectBase> object = zoneSettings.getSmartObjectById(deviceId);
                 if (object.isPresent()) {
@@ -439,7 +439,7 @@ public class DataCollectorEmulator {
     public static void sendNewZoneConfigurationToAllSmartObjects(@NotNull IMqttClient mqttClient, int zoneId, DataCollector dataCollector) {
         ZoneSettings zoneSettings = dataCollector.getZoneSettings(zoneId);
         if (zoneSettings != null) {
-            logger.info("Sending new configuration for all actuators!");
+            logger.info("Sending new configuration for all actuators! zone: {}", zoneId);
             for (String deviceId : zoneSettings.getAllSmartObjectIds()) {
                 sendNewZoneConfiguration(mqttClient, zoneId, deviceId, dataCollector);
             }
